@@ -44,3 +44,4 @@ model User {
 
   @@map("users")
 }
+
