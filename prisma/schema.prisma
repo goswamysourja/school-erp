@@ -32,6 +32,8 @@ model Tenant {
 
   users     User[]
 
+  classes Class[]
+
   @@map("tenants")
 }
 
@@ -55,6 +57,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
 
+  managedClasses Class[] @relation("ClassTeacher")
+
   @@map("users")
 }
 
@@ -70,5 +74,28 @@ model Otp {
   createdAt DateTime @default(now())
 
   @@map("otps")
+}
+
+model Class {
+  id             String   @id @default(cuid())
+
+  name           String
+
+  section        String
+
+  academicYear   String
+
+  isActive       Boolean  @default(true)
+
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+
+  classTeacherId String?
+  classTeacher   User?    @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  @@map("classes")
 }
 
