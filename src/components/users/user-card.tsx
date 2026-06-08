@@ -2,6 +2,8 @@ import type {
   User,
 } from "@prisma/client";
 
+import Link from "next/link";
+
 interface Props {
   user: User & {
     tenant: {
@@ -37,6 +39,11 @@ export function UserCard({
           ? "Active"
           : "Inactive"}
       </p>
+      <Link
+  href={`/dashboard/users/${user.id}/edit`}
+>
+  Edit
+</Link>
     </div>
   );
 }
