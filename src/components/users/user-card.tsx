@@ -1,20 +1,37 @@
-import type {
-  User,
-} from "@prisma/client";
+"use client";
 
 import Link from "next/link";
 
-interface Props {
+import type { User, Tenant } from "@prisma/client";
+
+interface UserCardProps {
   user: User & {
-    tenant: {
-      name: string;
-    } | null;
+    tenant: Tenant | null;
   };
 }
 
 export function UserCard({
   user,
-}: Props) {
+}: UserCardProps) {
+  async function handleToggle() {
+    const response =
+      await fetch(
+        `/api/users/${user.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (data.success) {
+      window.location.reload();
+    } else {
+      alert(data.message);
+    }
+  }
+
   return (
     <div>
       <h3>
@@ -39,11 +56,21 @@ export function UserCard({
           ? "Active"
           : "Inactive"}
       </p>
+
       <Link
-  href={`/dashboard/users/${user.id}/edit`}
->
-  Edit
-</Link>
+        href={`/dashboard/users/${user.id}/edit`}
+      >
+        Edit
+      </Link>
+
+      <button
+        type="button"
+        onClick={handleToggle}
+      >
+        {user.isActive
+          ? "Deactivate"
+          : "Activate"}
+      </button>
     </div>
   );
 }
