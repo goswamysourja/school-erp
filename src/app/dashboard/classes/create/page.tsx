@@ -1,0 +1,33 @@
+import { Role } from "@prisma/client";
+
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
+
+import { getClassTenants } from "@/modules/classes/services/get-class-tenants.service";
+import { getClassTeachers } from "@/modules/classes/services/get-class-teachers.service";
+
+import { CreateClassForm } from "@/components/classes/create-class-form";
+
+export default async function CreateClassPage() {
+  await requireRole([
+    Role.SUPER_ADMIN,
+  ]);
+
+  const tenants =
+    await getClassTenants();
+
+  const teachers =
+    await getClassTeachers();
+
+  return (
+    <main>
+      <h1>
+        Create Class
+      </h1>
+
+      <CreateClassForm
+        tenants={tenants}
+        teachers={teachers}
+      />
+    </main>
+  );
+}
