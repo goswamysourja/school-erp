@@ -1,19 +1,24 @@
 import { prisma } from "@/lib/prisma/client";
 import { generateToken } from "@/lib/auth/jwt";
-
+import { getCurrentUser }
+  from "@/modules/auth/services/get-current-user.service";
 export async function verifyOtp(
   email: string,
   otp: string
 ) {
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
+const user = await prisma.user.findUnique({
+  where: {
+    email,
+  },
+});
 
-  if (!user) {
-    throw new Error("User not found");
-  }
+if (!user) {
+  throw new Error("User not found");
+}
+
+await getCurrentUser(
+  user.id
+);
 
   const latestOtp =
     await prisma.otp.findFirst({

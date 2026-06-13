@@ -20,17 +20,17 @@ enum Role {
 }
 
 model Tenant {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  name      String
-  slug      String   @unique
+  name String
+  slug String @unique
 
-  isActive  Boolean  @default(true)
+  isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
+  users User[]
 
   classes Class[]
 
@@ -38,24 +38,24 @@ model Tenant {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  name         String
-  email        String   @unique
+  name  String
+  email String @unique
 
   passwordHash String?
 
-  role         Role
+  role Role
 
-  isActive     Boolean  @default(true)
+  isActive Boolean @default(true)
 
-  tenantId     String?
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id])
 
-  otps         Otp[]
+  otps Otp[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   managedClasses Class[] @relation("ClassTeacher")
 
@@ -63,10 +63,10 @@ model User {
 }
 
 model Otp {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   code      String
   expiresAt DateTime
@@ -77,25 +77,25 @@ model Otp {
 }
 
 model Class {
-  id             String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  name           String
+  name String
 
-  section        String
+  section String
 
-  academicYear   String
+  academicYear String
 
-  isActive       Boolean  @default(true)
+  isActive Boolean @default(true)
 
-  tenantId       String
-  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   classTeacherId String?
-  classTeacher   User?    @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  classTeacher   User?   @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
+  @@unique([tenantId, name, section, academicYear])
   @@map("classes")
 }
-

@@ -1,14 +1,19 @@
 import { prisma } from "@/lib/prisma/client";
+import { requireTenantAssignment }
+  from "@/modules/auth/guards/require-tenant-assignment.guard";
 
 interface CreateUserInput {
   name: string;
   email: string;
   role:
-    | "ADMIN"
-    | "TEACHER"
-    | "STUDENT";
+  | "ADMIN"
+  | "TEACHER"
+  | "STUDENT";
+
   tenantId: string;
 }
+
+
 
 export async function createUser(
   input: CreateUserInput
@@ -23,6 +28,30 @@ export async function createUser(
   if (existingUser) {
     throw new Error(
       "User already exists"
+    );
+  }
+
+  requireTenantAssignment(
+    input.role,
+    input.tenantId
+  );
+
+  const tenant =
+    await prisma.tenant.findUnique({
+      where: {
+        id: input.tenantId,
+      },
+    });
+
+  if (!tenant) {
+    throw new Error(
+      "Tenant not found"
+    );
+  }
+
+  if (!tenant.isActive) {
+    throw new Error(
+      "Tenant is inactive"
     );
   }
 

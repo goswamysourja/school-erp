@@ -66,6 +66,29 @@ export async function createClass(
     }
   }
 
+  const existingClass =
+  await prisma.class.findFirst({
+    where: {
+      tenantId:
+        input.tenantId,
+
+      name:
+        input.name,
+
+      section:
+        input.section,
+
+      academicYear:
+        input.academicYear,
+    },
+  });
+
+if (existingClass) {
+  throw new Error(
+    "Class already exists"
+  );
+}
+
   return prisma.class.create({
     data: {
       name: input.name,

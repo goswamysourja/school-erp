@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma/client";
-
+import {
+  TENANT_ROLES,
+} from "@/modules/auth/constants/platform.constants";
 export async function getCurrentUser(
   userId: string
 ) {
@@ -8,12 +10,8 @@ export async function getCurrentUser(
       where: {
         id: userId,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        tenantId: true,
+      include: {
+        tenant: true,
       },
     });
 
@@ -22,6 +20,34 @@ export async function getCurrentUser(
       "User not found"
     );
   }
+
+  if (!user.isActive) {
+    throw new Error(
+      "User account inactive"
+    );
+  }
+
+  if (
+    user.tenant &&
+    !user.tenant.isActive
+  ) {
+    throw new Error(
+      "Tenant inactive"
+    );
+  }
+
+  if (
+    TENANT_ROLES.includes(
+      user.role as never
+    ) &&
+    !user.tenantId
+  ) {
+    throw new Error(
+      "Tenant assignment missing"
+    );
+  }
+
+
 
   return user;
 }

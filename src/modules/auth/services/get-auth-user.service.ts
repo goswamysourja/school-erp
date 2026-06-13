@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma/client";
 import { verifyToken } from "@/lib/auth/verify-token";
+import { getCurrentUser } from "./get-current-user.service";
 
 export async function getAuthUser() {
-  const cookieStore = await cookies();
+  const cookieStore =
+    await cookies();
 
   const token =
     cookieStore.get("token")?.value;
@@ -17,11 +18,9 @@ export async function getAuthUser() {
       verifyToken(token);
 
     const user =
-      await prisma.user.findUnique({
-        where: {
-          id: payload.userId,
-        },
-      });
+      await getCurrentUser(
+        payload.userId
+      );
 
     return user;
   } catch {
