@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Stack,
+  TextField,
+} from "@mui/material";
+
+import { FormCard }
+  from "@/components/ui/form-card";
+
 interface Tenant {
   id: string;
   name: string;
@@ -23,129 +34,177 @@ export function CreateUserForm({
   const [role, setRole] =
     useState("TEACHER");
 
-  const [
-    tenantId,
-    setTenantId,
-  ] = useState("");
+  const [tenantId, setTenantId] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   async function handleSubmit(
     e: React.FormEvent
   ) {
     e.preventDefault();
 
-    const response =
-      await fetch(
-        "/api/users",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            role,
-            tenantId,
-          }),
-        }
-      );
+    try {
+      setLoading(true);
+      setError("");
 
-    const data =
-      await response.json();
+      const response =
+        await fetch(
+          "/api/users",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              role,
+              tenantId,
+            }),
+          }
+        );
 
-    if (data.success) {
-      alert(
-        "User created"
-      );
+      const data =
+        await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.message
+        );
+      }
 
       window.location.href =
         "/dashboard/users";
-    } else {
-      alert(
-        data.message
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create user"
       );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={
-        handleSubmit
-      }
-    >
-      <input
-        placeholder="Name"
-        value={name}
-        onChange={(e) =>
-          setName(
-            e.target.value
-          )
-        }
-      />
-
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) =>
-          setEmail(
-            e.target.value
-          )
-        }
-      />
-
-      <select
-        value={role}
-        onChange={(e) =>
-          setRole(
-            e.target.value
-          )
+    <FormCard>
+      <form
+        onSubmit={
+          handleSubmit
         }
       >
-        <option value="ADMIN">
-          ADMIN
-        </option>
+        <Stack spacing={3}>
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
 
-        <option value="TEACHER">
-          TEACHER
-        </option>
+          <TextField
+            label="Full Name"
+            fullWidth
+            value={name}
+            onChange={(e) =>
+              setName(
+                e.target.value
+              )
+            }
+          />
 
-        <option value="STUDENT">
-          STUDENT
-        </option>
-      </select>
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            value={email}
+            onChange={(e) =>
+              setEmail(
+                e.target.value
+              )
+            }
+          />
 
-      <select
-        value={tenantId}
-        onChange={(e) =>
-          setTenantId(
-            e.target.value
-          )
-        }
-      >
-        <option value="">
-          Select Tenant
-        </option>
+          <TextField
+            select
+            label="Role"
+            fullWidth
+            value={role}
+            onChange={(e) =>
+              setRole(
+                e.target.value
+              )
+            }
+          >
+            <MenuItem value="ADMIN">
+              ADMIN
+            </MenuItem>
 
-        {tenants.map(
-          (tenant) => (
-            <option
-              key={tenant.id}
-              value={
-                tenant.id
+            <MenuItem value="TEACHER">
+              TEACHER
+            </MenuItem>
+
+            <MenuItem value="STUDENT">
+              STUDENT
+            </MenuItem>
+          </TextField>
+
+          <TextField
+            select
+            label="Tenant"
+            fullWidth
+            value={tenantId}
+            onChange={(e) =>
+              setTenantId(
+                e.target.value
+              )
+            }
+          >
+            {tenants.map(
+              (tenant) => (
+                <MenuItem
+                  key={
+                    tenant.id
+                  }
+                  value={
+                    tenant.id
+                  }
+                >
+                  {tenant.name}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <Stack
+            direction="row"
+            spacing={2}
+          >
+            <Button
+              variant="outlined"
+              href="/dashboard/users"
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                loading
               }
             >
-              {tenant.name}
-            </option>
-          )
-        )}
-      </select>
-
-      <button
-        type="submit"
-      >
-        Create User
-      </button>
-    </form>
+              {loading
+                ? "Creating..."
+                : "Create User"}
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </FormCard>
   );
 }

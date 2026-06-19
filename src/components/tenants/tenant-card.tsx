@@ -2,7 +2,21 @@
 
 import Link from "next/link";
 
-import type { Tenant } from "@/modules/tenants/types/tenant.types";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import { DataCard }
+  from "@/components/ui/data-card";
+
+import { StatusChip }
+  from "@/components/ui/status-chip";
+
+import type { Tenant }
+  from "@/modules/tenants/types/tenant.types";
 
 interface TenantCardProps {
   tenant: Tenant;
@@ -12,12 +26,13 @@ export function TenantCard({
   tenant,
 }: TenantCardProps) {
   async function handleToggle() {
-    const response = await fetch(
-      `/api/tenants/${tenant.id}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response =
+      await fetch(
+        `/api/tenants/${tenant.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
     const data =
       await response.json();
@@ -30,35 +45,54 @@ export function TenantCard({
   }
 
   return (
-    <div>
-      <h3>
-        {tenant.name}
-      </h3>
+    <DataCard>
+      <Stack spacing={3}>
+        <Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+            }}
+          >
+            {tenant.name}
+          </Typography>
 
-      <p>
-        {tenant.slug}
-      </p>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            {tenant.slug}
+          </Typography>
+        </Box>
 
-      <p>
-        {tenant.isActive
-          ? "Active"
-          : "Inactive"}
-      </p>
+        <StatusChip
+          active={tenant.isActive}
+        />
 
-      <Link
-        href={`/dashboard/tenants/${tenant.id}/edit`}
-      >
-        Edit
-      </Link>
+        <Stack
+          direction="row"
+          spacing={1}
+        >
+          <Button
+            component={Link}
+            href={`/dashboard/tenants/${tenant.id}/edit`}
+            variant="outlined"
+            size="small"
+          >
+            Edit
+          </Button>
 
-      <button
-        type="button"
-        onClick={handleToggle}
-      >
-        {tenant.isActive
-          ? "Deactivate"
-          : "Activate"}
-      </button>
-    </div>
+          <Button
+            onClick={handleToggle}
+            variant="contained"
+            size="small"
+          >
+            {tenant.isActive
+              ? "Deactivate"
+              : "Activate"}
+          </Button>
+        </Stack>
+      </Stack>
+    </DataCard>
   );
 }

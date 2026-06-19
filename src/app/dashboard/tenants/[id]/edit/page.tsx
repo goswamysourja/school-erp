@@ -1,9 +1,17 @@
-import { Role } from "@prisma/client";
+import { Role }
+  from "@prisma/client";
 
-import { requireRole } from "@/modules/auth/guards/require-role.guard";
-import { getTenantById } from "@/modules/tenants/services/get-tenant-by-id.service";
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
 
-import { EditTenantForm } from "@/components/tenants/edit-tenant-form";
+import { getTenantById }
+  from "@/modules/tenants/services/get-tenant-by-id.service";
+
+import { PageHeader }
+  from "@/components/ui/page-header";
+
+import { EditTenantForm }
+  from "@/components/tenants/edit-tenant-form";
 
 export default async function EditTenantPage(
   {
@@ -35,10 +43,11 @@ export default async function EditTenantPage(
   }
 
   return (
-    <main>
-      <h1>
-        Edit Tenant
-      </h1>
+    <>
+      <PageHeader
+        title="Edit Tenant"
+        subtitle="Update tenant details"
+      />
 
       <EditTenantForm
         id={tenant.id}
@@ -52,6 +61,6 @@ export default async function EditTenantPage(
           tenant.isActive
         }
       />
-    </main>
+    </>
   );
 }

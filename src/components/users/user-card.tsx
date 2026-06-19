@@ -2,7 +2,23 @@
 
 import Link from "next/link";
 
-import type { User, Tenant } from "@prisma/client";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import { DataCard }
+  from "@/components/ui/data-card";
+
+import { StatusChip }
+  from "@/components/ui/status-chip";
+
+import type {
+  User,
+  Tenant,
+} from "@prisma/client";
 
 interface UserCardProps {
   user: User & {
@@ -33,44 +49,81 @@ export function UserCard({
   }
 
   return (
-    <div>
-      <h3>
-        {user.name}
-      </h3>
+    <DataCard>
+      <Stack spacing={3}>
+        <Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+            }}
+          >
+            {user.name}
+          </Typography>
 
-      <p>
-        {user.email}
-      </p>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            {user.email}
+          </Typography>
+        </Box>
 
-      <p>
-        {user.role}
-      </p>
+        <Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Role
+          </Typography>
 
-      <p>
-        {user.tenant?.name ??
-          "No Tenant"}
-      </p>
+          <Typography>
+            {user.role}
+          </Typography>
+        </Box>
 
-      <p>
-        {user.isActive
-          ? "Active"
-          : "Inactive"}
-      </p>
+        <Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Tenant
+          </Typography>
 
-      <Link
-        href={`/dashboard/users/${user.id}/edit`}
-      >
-        Edit
-      </Link>
+          <Typography>
+            {user.tenant?.name ??
+              "No Tenant"}
+          </Typography>
+        </Box>
 
-      <button
-        type="button"
-        onClick={handleToggle}
-      >
-        {user.isActive
-          ? "Deactivate"
-          : "Activate"}
-      </button>
-    </div>
+        <StatusChip
+          active={user.isActive}
+        />
+
+        <Stack
+          direction="row"
+          spacing={1}
+        >
+          <Button
+            component={Link}
+            href={`/dashboard/users/${user.id}/edit`}
+            variant="outlined"
+            size="small"
+          >
+            Edit
+          </Button>
+
+          <Button
+            onClick={handleToggle}
+            variant="contained"
+            size="small"
+          >
+            {user.isActive
+              ? "Deactivate"
+              : "Activate"}
+          </Button>
+        </Stack>
+      </Stack>
+    </DataCard>
   );
 }

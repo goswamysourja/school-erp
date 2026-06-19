@@ -1,27 +1,82 @@
-import { LogoutButton } from "@/components/layout/logout-button";
-import { requireAuth } from "@/modules/auth/guards/require-auth.guard";
+import {
+  Box,
+} from "@mui/material";
+
+import { getAuthUser }
+  from "@/modules/auth/services/get-auth-user.service";
+
+import { getDashboardStats }
+  from "@/modules/dashboard/services/get-dashboard-stats.service";
+
+import { PageHeader }
+  from "@/components/ui/page-header";
+
+import { SectionContainer }
+  from "@/components/ui/section-container";
+
+import { StatCard }
+  from "@/components/dashboard/stat-card";
+
+import { QuickActions }
+  from "@/components/dashboard/quick-actions";
+
+import { WelcomeCard }
+  from "@/components/dashboard/welcome-card";
 
 export default async function DashboardPage() {
   const user =
-    await requireAuth();
+    await getAuthUser();
+
+  const stats =
+    await getDashboardStats();
 
   return (
-    <main>
-      <h1>Dashboard</h1>
+    <>
+      <PageHeader
+        title="Dashboard"
+        subtitle="School ERP Overview"
+      />
 
-      <p>
-        Welcome {user.name}
-      </p>
+      <Box
+        sx={{
+          mb: 4,
+        }}
+      >
+        <WelcomeCard
+          name={user?.name ?? ""}
+          role={user?.role ?? ""}
+        />
+      </Box>
 
-      <p>
-        Email: {user.email}
-      </p>
+      <SectionContainer>
+        <StatCard
+          title="Users"
+          value={stats.users}
+        />
 
-      <p>
-        Role: {user.role}
-      </p>
+        <StatCard
+          title="Tenants"
+          value={stats.tenants}
+        />
 
-      <LogoutButton />
-    </main>
+        <StatCard
+          title="Classes"
+          value={stats.classes}
+        />
+      </SectionContainer>
+
+      <Box
+        sx={{
+          mt: 5,
+        }}
+      >
+        <PageHeader
+          title="Quick Actions"
+          subtitle="Frequently used actions"
+        />
+
+        <QuickActions />
+      </Box>
+    </>
   );
 }

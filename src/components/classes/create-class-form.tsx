@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Stack,
+  TextField,
+} from "@mui/material";
+
+import { FormCard }
+  from "@/components/ui/form-card";
+
 interface Tenant {
   id: string;
   name: string;
@@ -40,131 +51,194 @@ export function CreateClassForm({
     setClassTeacherId,
   ] = useState("");
 
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   async function handleSubmit(
     e: React.FormEvent
   ) {
     e.preventDefault();
 
-    const response =
-      await fetch(
-        "/api/classes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            section,
-            academicYear,
-            tenantId,
-            classTeacherId:
-              classTeacherId || undefined,
-          }),
-        }
-      );
+    try {
+      setLoading(true);
+      setError("");
 
-    const data =
-      await response.json();
+      const response =
+        await fetch(
+          "/api/classes",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              section,
+              academicYear,
+              tenantId,
+              classTeacherId:
+                classTeacherId ||
+                undefined,
+            }),
+          }
+        );
 
-    if (data.success) {
-      alert(
-        "Class created"
-      );
+      const data =
+        await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.message
+        );
+      }
 
       window.location.href =
         "/dashboard/classes";
-    } else {
-      alert(
-        data.message
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create class"
       );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        placeholder="Class"
-        value={name}
-        onChange={(e) =>
-          setName(
-            e.target.value
-          )
-        }
-      />
-
-      <input
-        placeholder="Section"
-        value={section}
-        onChange={(e) =>
-          setSection(
-            e.target.value
-          )
-        }
-      />
-
-      <input
-        placeholder="Academic Year"
-        value={academicYear}
-        onChange={(e) =>
-          setAcademicYear(
-            e.target.value
-          )
-        }
-      />
-
-      <select
-        value={tenantId}
-        onChange={(e) =>
-          setTenantId(
-            e.target.value
-          )
+    <FormCard>
+      <form
+        onSubmit={
+          handleSubmit
         }
       >
-        <option value="">
-          Select Tenant
-        </option>
+        <Stack spacing={3}>
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
 
-        {tenants.map(
-          (tenant) => (
-            <option
-              key={tenant.id}
-              value={tenant.id}
+          <TextField
+            label="Class Name"
+            fullWidth
+            value={name}
+            onChange={(e) =>
+              setName(
+                e.target.value
+              )
+            }
+          />
+
+          <TextField
+            label="Section"
+            fullWidth
+            value={section}
+            onChange={(e) =>
+              setSection(
+                e.target.value
+              )
+            }
+          />
+
+          <TextField
+            label="Academic Year"
+            fullWidth
+            value={academicYear}
+            onChange={(e) =>
+              setAcademicYear(
+                e.target.value
+              )
+            }
+          />
+
+          <TextField
+            select
+            label="Tenant"
+            fullWidth
+            value={tenantId}
+            onChange={(e) =>
+              setTenantId(
+                e.target.value
+              )
+            }
+          >
+            {tenants.map(
+              (tenant) => (
+                <MenuItem
+                  key={
+                    tenant.id
+                  }
+                  value={
+                    tenant.id
+                  }
+                >
+                  {tenant.name}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <TextField
+            select
+            label="Class Teacher"
+            fullWidth
+            value={classTeacherId}
+            onChange={(e) =>
+              setClassTeacherId(
+                e.target.value
+              )
+            }
+          >
+            <MenuItem value="">
+              No Teacher
+            </MenuItem>
+
+            {teachers.map(
+              (teacher) => (
+                <MenuItem
+                  key={
+                    teacher.id
+                  }
+                  value={
+                    teacher.id
+                  }
+                >
+                  {teacher.name}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <Stack
+            direction="row"
+            spacing={2}
+          >
+            <Button
+              variant="outlined"
+              href="/dashboard/classes"
             >
-              {tenant.name}
-            </option>
-          )
-        )}
-      </select>
+              Cancel
+            </Button>
 
-      <select
-        value={classTeacherId}
-        onChange={(e) =>
-          setClassTeacherId(
-            e.target.value
-          )
-        }
-      >
-        <option value="">
-          No Teacher
-        </option>
-
-        {teachers.map(
-          (teacher) => (
-            <option
-              key={teacher.id}
-              value={teacher.id}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                loading
+              }
             >
-              {teacher.name}
-            </option>
-          )
-        )}
-      </select>
-
-      <button type="submit">
-        Create Class
-      </button>
-    </form>
+              {loading
+                ? "Creating..."
+                : "Create Class"}
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </FormCard>
   );
 }

@@ -1,10 +1,26 @@
 import { Role } from "@prisma/client";
 
-import { requireRole } from "@/modules/auth/guards/require-role.guard";
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
 
-import { getUsers } from "@/modules/users/services/get-users.service";
+import { getUsers }
+  from "@/modules/users/services/get-users.service";
 
-import { UserCard } from "@/components/users/user-card";
+import { UserCard }
+  from "@/components/users/user-card";
+
+import { PageHeader }
+  from "@/components/ui/page-header";
+
+import { SectionContainer }
+  from "@/components/ui/section-container";
+
+  import Link from "next/link";
+
+import {
+  Button,
+  Stack,
+} from "@mui/material";
 
 export default async function UsersPage() {
   await requireRole([
@@ -15,19 +31,31 @@ export default async function UsersPage() {
     await getUsers();
 
   return (
-    <main>
-      <h1>
-        Users
-      </h1>
+    <>
+      <PageHeader
+        title="Users"
+        subtitle="Manage platform users"
+      />
 
-      {users.map(
-        (user) => (
-          <UserCard
-            key={user.id}
-            user={user}
-          />
-        )
-      )}
-    </main>
+      <Link href="/dashboard/users/create">
+  <Button
+    variant="contained"
+    sx={{ mb: 3 }}
+  >
+    Create User
+  </Button>
+</Link>
+
+      <SectionContainer>
+        {users.map(
+          (user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+            />
+          )
+        )}
+      </SectionContainer>
+    </>
   );
 }

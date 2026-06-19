@@ -2,6 +2,19 @@
 
 import Link from "next/link";
 
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import { DataCard }
+  from "@/components/ui/data-card";
+
+import { StatusChip }
+  from "@/components/ui/status-chip";
+
 import type {
   Class,
   Tenant,
@@ -38,51 +51,101 @@ export function ClassCard({
   }
 
   return (
-    <div>
-      <h3>
-        {classItem.name}
-      </h3>
+    <DataCard>
+      <Stack spacing={3}>
+        <Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+            }}
+          >
+            Class {classItem.name}
+          </Typography>
 
-      <p>
-        Section: {classItem.section}
-      </p>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            Section {classItem.section}
+          </Typography>
+        </Box>
 
-      <p>
-        Academic Year:{" "}
-        {classItem.academicYear}
-      </p>
+        <Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Academic Year
+          </Typography>
 
-      <p>
-        Tenant:{" "}
-        {classItem.tenant.name}
-      </p>
+          <Typography>
+            {
+              classItem.academicYear
+            }
+          </Typography>
+        </Box>
 
-      <p>
-        Teacher:{" "}
-        {classItem.classTeacher?.name ??
-          "No Teacher"}
-      </p>
+        <Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Tenant
+          </Typography>
 
-      <p>
-        {classItem.isActive
-          ? "Active"
-          : "Inactive"}
-      </p>
+          <Typography>
+            {
+              classItem.tenant.name
+            }
+          </Typography>
+        </Box>
 
-      <Link
-        href={`/dashboard/classes/${classItem.id}/edit`}
-      >
-        Edit
-      </Link>
+        <Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            Class Teacher
+          </Typography>
 
-      <button
-        type="button"
-        onClick={handleToggle}
-      >
-        {classItem.isActive
-          ? "Deactivate"
-          : "Activate"}
-      </button>
-    </div>
+          <Typography>
+            {classItem.classTeacher
+              ?.name ??
+              "No Teacher"}
+          </Typography>
+        </Box>
+
+        <StatusChip
+          active={
+            classItem.isActive
+          }
+        />
+
+        <Stack
+          direction="row"
+          spacing={1}
+        >
+          <Button
+            component={Link}
+            href={`/dashboard/classes/${classItem.id}/edit`}
+            variant="outlined"
+            size="small"
+          >
+            Edit
+          </Button>
+
+          <Button
+            onClick={handleToggle}
+            variant="contained"
+            size="small"
+          >
+            {classItem.isActive
+              ? "Deactivate"
+              : "Activate"}
+          </Button>
+        </Stack>
+      </Stack>
+    </DataCard>
   );
 }

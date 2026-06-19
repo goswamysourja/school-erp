@@ -4,6 +4,18 @@ import {
   useState,
 } from "react";
 
+import {
+  Alert,
+  Button,
+  FormControlLabel,
+  Checkbox,
+  Stack,
+  TextField,
+} from "@mui/material";
+
+import { FormCard }
+  from "@/components/ui/form-card";
+
 interface Props {
   id: string;
   initialName: string;
@@ -34,90 +46,137 @@ export function EditTenantForm({
     initialIsActive
   );
 
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   async function handleSubmit(
     e: React.FormEvent
   ) {
     e.preventDefault();
 
-    const response =
-      await fetch(
-        `/api/tenants/${id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            slug,
-            isActive,
-          }),
-        }
-      );
+    try {
+      setLoading(true);
+      setError("");
 
-    const data =
-      await response.json();
+      const response =
+        await fetch(
+          `/api/tenants/${id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              slug,
+              isActive,
+            }),
+          }
+        );
 
-    if (data.success) {
-      alert(
-        "Tenant updated"
-      );
+      const data =
+        await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.message
+        );
+      }
 
       window.location.href =
         "/dashboard/tenants";
-    } else {
-      alert(
-        data.message
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update tenant"
       );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={
-        handleSubmit
-      }
-    >
-      <input
-        value={name}
-        onChange={(e) =>
-          setName(
-            e.target.value
-          )
+    <FormCard>
+      <form
+        onSubmit={
+          handleSubmit
         }
-      />
-
-      <input
-        value={slug}
-        onChange={(e) =>
-          setSlug(
-            e.target.value
-          )
-        }
-      />
-
-      <label>
-        Active
-      </label>
-
-      <input
-        type="checkbox"
-        checked={
-          isActive
-        }
-        onChange={(e) =>
-          setIsActive(
-            e.target.checked
-          )
-        }
-      />
-
-      <button
-        type="submit"
       >
-        Save
-      </button>
-    </form>
+        <Stack spacing={3}>
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
+
+          <TextField
+            label="Tenant Name"
+            fullWidth
+            value={name}
+            onChange={(e) =>
+              setName(
+                e.target.value
+              )
+            }
+          />
+
+          <TextField
+            label="Tenant Slug"
+            fullWidth
+            value={slug}
+            onChange={(e) =>
+              setSlug(
+                e.target.value
+              )
+            }
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={
+                  isActive
+                }
+                onChange={(e) =>
+                  setIsActive(
+                    e.target.checked
+                  )
+                }
+              />
+            }
+            label="Active Tenant"
+          />
+
+          <Stack
+            direction="row"
+            spacing={2}
+          >
+            <Button
+              variant="outlined"
+              href="/dashboard/tenants"
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                loading
+              }
+            >
+              {loading
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </FormCard>
   );
 }

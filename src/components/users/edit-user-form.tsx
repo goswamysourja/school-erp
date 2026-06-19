@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Stack,
+  TextField,
+} from "@mui/material";
+
+import { FormCard }
+  from "@/components/ui/form-card";
+
 interface Tenant {
   id: string;
   name: string;
@@ -31,100 +42,161 @@ export function EditUserForm({
   const [tenantId, setTenantId] =
     useState(initialTenantId);
 
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   async function handleSubmit(
     e: React.FormEvent
   ) {
     e.preventDefault();
 
-    const response =
-      await fetch(
-        `/api/users/${id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            role,
-            tenantId,
-          }),
-        }
-      );
+    try {
+      setLoading(true);
+      setError("");
 
-    const data =
-      await response.json();
+      const response =
+        await fetch(
+          `/api/users/${id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              role,
+              tenantId,
+            }),
+          }
+        );
 
-    if (data.success) {
-      alert(
-        "User updated"
-      );
+      const data =
+        await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.message
+        );
+      }
 
       window.location.href =
         "/dashboard/users";
-    } else {
-      alert(
-        data.message
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update user"
       );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={name}
-        onChange={(e) =>
-          setName(
-            e.target.value
-          )
-        }
-      />
-
-      <select
-        value={role}
-        onChange={(e) =>
-          setRole(
-            e.target.value
-          )
+    <FormCard>
+      <form
+        onSubmit={
+          handleSubmit
         }
       >
-        <option value="ADMIN">
-          ADMIN
-        </option>
+        <Stack spacing={3}>
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
 
-        <option value="TEACHER">
-          TEACHER
-        </option>
+          <TextField
+            label="Full Name"
+            fullWidth
+            value={name}
+            onChange={(e) =>
+              setName(
+                e.target.value
+              )
+            }
+          />
 
-        <option value="STUDENT">
-          STUDENT
-        </option>
-      </select>
+          <TextField
+            select
+            label="Role"
+            fullWidth
+            value={role}
+            onChange={(e) =>
+              setRole(
+                e.target.value
+              )
+            }
+          >
+            <MenuItem value="ADMIN">
+              ADMIN
+            </MenuItem>
 
-      <select
-        value={tenantId}
-        onChange={(e) =>
-          setTenantId(
-            e.target.value
-          )
-        }
-      >
-        {tenants.map(
-          (tenant) => (
-            <option
-              key={tenant.id}
-              value={tenant.id}
+            <MenuItem value="TEACHER">
+              TEACHER
+            </MenuItem>
+
+            <MenuItem value="STUDENT">
+              STUDENT
+            </MenuItem>
+          </TextField>
+
+          <TextField
+            select
+            label="Tenant"
+            fullWidth
+            value={tenantId}
+            onChange={(e) =>
+              setTenantId(
+                e.target.value
+              )
+            }
+          >
+            {tenants.map(
+              (tenant) => (
+                <MenuItem
+                  key={
+                    tenant.id
+                  }
+                  value={
+                    tenant.id
+                  }
+                >
+                  {tenant.name}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <Stack
+            direction="row"
+            spacing={2}
+          >
+            <Button
+              variant="outlined"
+              href="/dashboard/users"
             >
-              {tenant.name}
-            </option>
-          )
-        )}
-      </select>
+              Cancel
+            </Button>
 
-      <button type="submit">
-        Save
-      </button>
-    </form>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                loading
+              }
+            >
+              {loading
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </FormCard>
   );
 }

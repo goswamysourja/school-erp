@@ -1,14 +1,22 @@
 import { Role } from "@prisma/client";
 
-import { requireRole } from "@/modules/auth/guards/require-role.guard";
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
 
-import { getClassById } from "@/modules/classes/services/get-class-by-id.service";
+import { getClassById }
+  from "@/modules/classes/services/get-class-by-id.service";
 
-import { getClassTeachers } from "@/modules/classes/services/get-class-teachers.service";
+import { getClassTeachers }
+  from "@/modules/classes/services/get-class-teachers.service";
 
-import { getClassTenants } from "@/modules/classes/services/get-class-tenants.service";
+import { getClassTenants }
+  from "@/modules/classes/services/get-class-tenants.service";
 
-import { EditClassForm } from "@/components/classes/edit-class-form";
+import { EditClassForm }
+  from "@/components/classes/edit-class-form";
+
+import { PageHeader }
+  from "@/components/ui/page-header";
 
 export default async function EditClassPage(
   {
@@ -44,10 +52,11 @@ export default async function EditClassPage(
   }
 
   return (
-    <main>
-      <h1>
-        Edit Class
-      </h1>
+    <>
+      <PageHeader
+        title="Edit Class"
+        subtitle="Update class details"
+      />
 
       <EditClassForm
         id={classItem.id}
@@ -70,6 +79,6 @@ export default async function EditClassPage(
         tenants={tenants}
         teachers={teachers}
       />
-    </main>
+    </>
   );
 }

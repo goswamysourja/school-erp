@@ -1,79 +1,28 @@
-"use client";
+import { Role }
+  from "@prisma/client";
 
-import { useState } from "react";
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
 
-export default function CreateTenantPage() {
-  const [name, setName] =
-    useState("");
+import { PageHeader }
+  from "@/components/ui/page-header";
 
-  const [slug, setSlug] =
-    useState("");
+import { CreateTenantForm }
+  from "@/components/tenants/create-tenant-form";
 
-  const handleSubmit =
-    async (
-      e: React.FormEvent
-    ) => {
-      e.preventDefault();
-
-      const response =
-        await fetch(
-          "/api/tenants",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              slug,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      alert(
-        data.success
-          ? "Tenant created"
-          : data.message
-      );
-    };
+export default async function CreateTenantPage() {
+  await requireRole([
+    Role.SUPER_ADMIN,
+  ]);
 
   return (
-    <main>
-      <h1>Create Tenant</h1>
+    <>
+      <PageHeader
+        title="Create Tenant"
+        subtitle="Register a new school tenant"
+      />
 
-      <form
-        onSubmit={
-          handleSubmit
-        }
-      >
-        <input
-          placeholder="Tenant Name"
-          value={name}
-          onChange={(e) =>
-            setName(
-              e.target.value
-            )
-          }
-        />
-
-        <input
-          placeholder="Tenant Slug"
-          value={slug}
-          onChange={(e) =>
-            setSlug(
-              e.target.value
-            )
-          }
-        />
-
-        <button type="submit">
-          Create Tenant
-        </button>
-      </form>
-    </main>
+      <CreateTenantForm />
+    </>
   );
 }
