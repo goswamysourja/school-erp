@@ -148,8 +148,8 @@ export function CreateUserForm({
               TEACHER
             </MenuItem>
 
-            <MenuItem value="STUDENT">
-              STUDENT
+            <MenuItem value="TEACHER">
+              TEACHER
             </MenuItem>
           </TextField>
 

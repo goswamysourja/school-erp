@@ -97,6 +97,7 @@ export function DashboardSidebar({
                     item.label
                   }
                 />
+                
               </ListItemButton>
             );
           }
@@ -110,6 +111,7 @@ export function DashboardSidebar({
       role={role}
     />
   )}
+  
     </Box>
   );
 }

@@ -15,8 +15,8 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  CLASS_TEACHER
   TEACHER
-  STUDENT
 }
 
 model Tenant {
@@ -30,9 +30,9 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users User[]
-
-  classes Class[]
+  users    User[]
+  classes  Class[]
+  students Student[]
 
   @@map("tenants")
 }
@@ -79,10 +79,8 @@ model Otp {
 model Class {
   id String @id @default(cuid())
 
-  name String
-
-  section String
-
+  name         String
+  section      String
   academicYear String
 
   isActive Boolean @default(true)
@@ -93,9 +91,46 @@ model Class {
   classTeacherId String?
   classTeacher   User?   @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
+  students Student[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([tenantId, name, section, academicYear])
   @@map("classes")
+}
+
+model Student {
+  id String @id @default(cuid())
+
+  admissionNumber String
+
+  firstName String
+  lastName  String
+
+  gender String
+
+  dateOfBirth DateTime?
+
+  guardianName String?
+
+  phone String?
+
+  address String?
+
+  isActive Boolean @default(true)
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, admissionNumber])
+  @@index([tenantId])
+  @@index([classId])
+  @@map("students")
 }

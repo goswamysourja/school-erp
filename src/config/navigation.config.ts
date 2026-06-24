@@ -10,6 +10,8 @@ import PeopleIcon
 import SchoolIcon
   from "@mui/icons-material/School";
 
+  
+
 export const navigationItems = [
   {
     label: "Dashboard",
@@ -34,4 +36,10 @@ export const navigationItems = [
     href: "/dashboard/classes",
     icon: SchoolIcon,
   },
+
+  {
+  label: "Students",
+  href: "/dashboard/students",
+  icon: PeopleIcon,
+},
 ];
