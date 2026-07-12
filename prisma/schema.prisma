@@ -33,6 +33,7 @@ model Tenant {
   users    User[]
   classes  Class[]
   students Student[]
+  subjects Subject[]
 
   @@map("tenants")
 }
@@ -92,6 +93,7 @@ model Class {
   classTeacher   User?   @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
   students Student[]
+  subjects Subject[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -133,4 +135,31 @@ model Student {
   @@index([tenantId])
   @@index([classId])
   @@map("students")
+}
+
+model Subject {
+  id String @id @default(cuid())
+
+  name String
+
+  code String
+
+  description String?
+
+  isActive Boolean @default(true)
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, classId, code])
+  @@unique([tenantId, classId, name])
+  @@index([tenantId])
+  @@index([classId])
+  @@map("subjects")
 }
