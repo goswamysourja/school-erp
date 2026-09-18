@@ -1,35 +1,31 @@
 import { Role } from "@prisma/client";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
-import { getUserTenants }
-  from "@/modules/users/services/get-user-tenants.service";
+import { CreateUserForm } from "@/components/users/create-user-form";
 
-import { CreateUserForm }
-  from "@/components/users/create-user-form";
-
-import { PageHeader }
-  from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function CreateUserPage() {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
 
-  const tenants =
-    await getUserTenants();
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing.",
+    );
+  }
 
   return (
     <>
       <PageHeader
         title="Create User"
-        subtitle="Create a new tenant user"
+        subtitle="Create a new user for your school"
       />
 
-      <CreateUserForm
-        tenants={tenants}
-      />
+      <CreateUserForm />
     </>
   );
 }

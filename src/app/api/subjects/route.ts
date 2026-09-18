@@ -20,13 +20,22 @@ import {
 
 export async function GET() {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-      Role.ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing"
+      );
+    }
 
     const subjects =
-      await getSubjects();
+      await getSubjects({
+        tenantId:
+          currentUser.tenantId,
+      });
 
     return NextResponse.json({
       success: true,
@@ -52,10 +61,16 @@ export async function POST(
   request: NextRequest
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-      Role.ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing"
+      );
+    }
 
     const body =
       await request.json();
@@ -66,14 +81,22 @@ export async function POST(
       );
 
     const subject =
-      await createSubject(
-        validatedData
-      );
+      await createSubject({
+        ...validatedData,
 
-    return NextResponse.json({
-      success: true,
-      subject,
-    });
+        tenantId:
+          currentUser.tenantId,
+      });
+
+    return NextResponse.json(
+      {
+        success: true,
+        subject,
+      },
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
     return NextResponse.json(
       {

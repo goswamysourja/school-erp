@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,154 +7,228 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  CLASS_TEACHER
-  TEACHER
+enum TenantStatus {
+  PENDING
+  PENDING_ADMIN
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  REJECTED
 }
 
 model Tenant {
-  id String @id @default(cuid())
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  status      TenantStatus @default(PENDING)
+  adminUserId String?      @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  name String
-  slug String @unique
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users    User[]
   classes  Class[]
+  sections Section[]
   students Student[]
   subjects Subject[]
+  teachers Teacher[]
+
+  teachingAssignments     TeachingAssignment[]
+  classTeacherAssignments ClassTeacherAssignment[]
+  users                   User[]                   @relation("TenantUsers")
+  adminUser               User?                    @relation("TenantAdministrator", fields: [adminUserId], references: [id], onDelete: SetNull)
 
   @@map("tenants")
 }
 
 model User {
-  id String @id @default(cuid())
+  id           String   @id @default(cuid())
+  name         String
+  phone        String   @unique
+  role         Role
+  tenantId     String?
+  createdAt    DateTime @default(now())
+  isActive     Boolean  @default(true)
+  updatedAt    DateTime @default(now()) @updatedAt
 
-  name  String
-  email String @unique
-
-  passwordHash String?
-
-  role Role
-
-  isActive Boolean @default(true)
-
-  tenantId String?
-  tenant   Tenant? @relation(fields: [tenantId], references: [id])
-
-  otps Otp[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  managedClasses Class[] @relation("ClassTeacher")
+  otps               Otp[]
+  teacher            Teacher?
+  tenant             Tenant?  @relation("TenantUsers", fields: [tenantId], references: [id])
+  administeredTenant Tenant?  @relation("TenantAdministrator")
 
   @@map("users")
 }
 
 model Otp {
-  id String @id @default(cuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  userId    String
   code      String
   expiresAt DateTime
-
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("otps")
 }
 
 model Class {
-  id String @id @default(cuid())
-
+  id           String   @id @default(cuid())
   name         String
-  section      String
   academicYear String
+  isActive     Boolean  @default(true)
+  tenantId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
-  isActive Boolean @default(true)
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  sections Section[]
 
-  tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
-
-  classTeacherId String?
-  classTeacher   User?   @relation("ClassTeacher", fields: [classTeacherId], references: [id])
-
-  students Student[]
-  subjects Subject[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([tenantId, name, section, academicYear])
+  @@unique([tenantId, name, academicYear])
+  @@index([tenantId])
   @@map("classes")
 }
 
-model Student {
-  id String @id @default(cuid())
-
-  admissionNumber String
-
-  firstName String
-  lastName  String
-
-  gender String
-
-  dateOfBirth DateTime?
-
-  guardianName String?
-
-  phone String?
-
-  address String?
-
-  isActive Boolean @default(true)
-
-  tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
-
-  classId String
-  class   Class  @relation(fields: [classId], references: [id])
-
+model Section {
+  id        String   @id @default(cuid())
+  name      String
+  isActive  Boolean  @default(true)
+  tenantId  String
+  classId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([tenantId, admissionNumber])
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  class    Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  students Student[]
+
+  teachingAssignments     TeachingAssignment[]
+  classTeacherAssignments ClassTeacherAssignment[]
+
+  @@unique([classId, name])
   @@index([tenantId])
   @@index([classId])
+  @@map("sections")
+}
+
+model Student {
+  id              String    @id @default(cuid())
+  admissionNumber String
+  firstName       String
+  lastName        String
+  gender          String
+  dateOfBirth     DateTime?
+  guardianName    String?
+  phone           String?
+  address         String?
+  isActive        Boolean   @default(true)
+  tenantId        String
+  sectionId       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  section Section? @relation(fields: [sectionId], references: [id])
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, admissionNumber])
+  @@index([tenantId])
+  @@index([sectionId])
   @@map("students")
 }
 
 model Subject {
-  id String @id @default(cuid())
-
-  name String
-
-  code String
-
+  id          String   @id @default(cuid())
+  name        String
+  code        String
   description String?
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  isActive Boolean @default(true)
+  teachingAssignments TeachingAssignment[]
 
-  tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
 
-  classId String
-  class   Class  @relation(fields: [classId], references: [id])
+  @@unique([tenantId, code])
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("subjects")
+}
 
+model Teacher {
+  id                   String    @id @default(cuid())
+  employeeId           String
+  firstName            String
+  lastName             String
+  gender               Gender
+  dateOfBirth          DateTime?
+  phone                String?
+  address              String?
+  highestQualification String?
+  joiningDate          DateTime?
+  isActive             Boolean   @default(true)
+  tenantId             String
+  userId               String    @unique
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  teachingAssignments     TeachingAssignment[]
+  classTeacherAssignments ClassTeacherAssignment[]
+
+  @@unique([tenantId, employeeId])
+  @@index([tenantId])
+  @@map("teachers")
+}
+
+model TeachingAssignment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  teacherId String
+  sectionId String
+  subjectId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([tenantId, classId, code])
-  @@unique([tenantId, classId, name])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, subjectId])
   @@index([tenantId])
-  @@index([classId])
-  @@map("subjects")
+  @@index([teacherId])
+  @@index([sectionId])
+  @@index([subjectId])
+  @@map("teaching_assignments")
+}
+
+model ClassTeacherAssignment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  teacherId String
+  sectionId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId])
+  @@index([tenantId])
+  @@index([teacherId])
+  @@index([sectionId])
+  @@map("class_teacher_assignments")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  TEACHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }

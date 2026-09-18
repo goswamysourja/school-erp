@@ -7,8 +7,6 @@ import {
 import {
   Alert,
   Button,
-  FormControlLabel,
-  Checkbox,
   Stack,
   TextField,
 } from "@mui/material";
@@ -20,31 +18,18 @@ interface Props {
   id: string;
   initialName: string;
   initialSlug: string;
-  initialIsActive: boolean;
 }
 
 export function EditTenantForm({
   id,
   initialName,
   initialSlug,
-  initialIsActive,
 }: Props) {
   const [name, setName] =
-    useState(
-      initialName
-    );
+    useState(initialName);
 
   const [slug, setSlug] =
-    useState(
-      initialSlug
-    );
-
-  const [
-    isActive,
-    setIsActive,
-  ] = useState(
-    initialIsActive
-  );
+    useState(initialSlug);
 
   const [loading, setLoading] =
     useState(false);
@@ -73,7 +58,6 @@ export function EditTenantForm({
             body: JSON.stringify({
               name,
               slug,
-              isActive,
             }),
           }
         );
@@ -103,9 +87,7 @@ export function EditTenantForm({
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -119,9 +101,7 @@ export function EditTenantForm({
             fullWidth
             value={name}
             onChange={(e) =>
-              setName(
-                e.target.value
-              )
+              setName(e.target.value)
             }
           />
 
@@ -130,26 +110,8 @@ export function EditTenantForm({
             fullWidth
             value={slug}
             onChange={(e) =>
-              setSlug(
-                e.target.value
-              )
+              setSlug(e.target.value)
             }
-          />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={
-                  isActive
-                }
-                onChange={(e) =>
-                  setIsActive(
-                    e.target.checked
-                  )
-                }
-              />
-            }
-            label="Active Tenant"
           />
 
           <Stack
@@ -166,9 +128,7 @@ export function EditTenantForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Saving..."

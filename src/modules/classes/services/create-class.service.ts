@@ -1,14 +1,9 @@
 import { prisma } from "@/lib/prisma/client";
-import { Role } from "@prisma/client";
 
 interface CreateClassInput {
   name: string;
-  section: string;
   academicYear: string;
-
   tenantId: string;
-
-  classTeacherId?: string;
 }
 
 export async function createClass(
@@ -27,80 +22,42 @@ export async function createClass(
     );
   }
 
-  if (input.classTeacherId) {
-    const teacher =
-      await prisma.user.findUnique({
-        where: {
-          id: input.classTeacherId,
-        },
-      });
-
-    if (!teacher) {
-      throw new Error(
-        "Teacher not found"
-      );
-    }
-
-    if (
-      teacher.role !==
-      Role.TEACHER
-    ) {
-      throw new Error(
-        "Selected user is not a teacher"
-      );
-    }
-
-    if (!teacher.isActive) {
-      throw new Error(
-        "Teacher is inactive"
-      );
-    }
-
-    if (
-      teacher.tenantId !==
-      input.tenantId
-    ) {
-      throw new Error(
-        "Teacher belongs to another tenant"
-      );
-    }
+  if (tenant.status !== "ACTIVE") {
+    throw new Error(
+      "Tenant is inactive"
+    );
   }
 
   const existingClass =
-  await prisma.class.findFirst({
-    where: {
-      tenantId:
-        input.tenantId,
+    await prisma.class.findFirst({
+      where: {
+        tenantId:
+          input.tenantId,
 
-      name:
-        input.name,
+        name:
+          input.name,
 
-      section:
-        input.section,
+        academicYear:
+          input.academicYear,
+      },
+    });
 
-      academicYear:
-        input.academicYear,
-    },
-  });
-
-if (existingClass) {
-  throw new Error(
-    "Class already exists"
-  );
-}
+  if (existingClass) {
+    throw new Error(
+      "Class already exists"
+    );
+  }
 
   return prisma.class.create({
     data: {
-      name: input.name,
-      section: input.section,
+      name:
+        input.name,
+
       academicYear:
         input.academicYear,
 
       tenantId:
         input.tenantId,
-
-      classTeacherId:
-        input.classTeacherId,
     },
   });
 }

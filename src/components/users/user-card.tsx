@@ -23,9 +23,9 @@ import type {
 interface UserCardProps {
   user: User & {
     tenant: Tenant | null;
+    hasTeacherProfile: boolean;
   };
 }
-
 export function UserCard({
   user,
 }: UserCardProps) {
@@ -65,7 +65,7 @@ export function UserCard({
             variant="body2"
             color="text.secondary"
           >
-            {user.email}
+            {user.phone}
           </Typography>
         </Box>
 
@@ -104,6 +104,20 @@ export function UserCard({
           direction="row"
           spacing={1}
         >
+
+          {user.role === "TEACHER" &&
+            !user.hasTeacherProfile && (
+              <Button
+                component={Link}
+                href={`/dashboard/users/${user.id}/teacher/create`}
+                variant="contained"
+                size="small"
+              >
+                Complete Teacher Profile
+              </Button>
+            )}
+
+
           <Button
             component={Link}
             href={`/dashboard/users/${user.id}/edit`}

@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma/client";
 
 export async function toggleSubjectStatus(
-  id: string
+  id: string,
+  tenantId: string,
 ) {
   const subject =
     await prisma.subject.findUnique({
@@ -16,10 +17,20 @@ export async function toggleSubjectStatus(
     );
   }
 
+  if (
+    subject.tenantId !==
+    tenantId
+  ) {
+    throw new Error(
+      "Subject belongs to another tenant"
+    );
+  }
+
   return prisma.subject.update({
     where: {
-      id,
+      id: subject.id,
     },
+
     data: {
       isActive:
         !subject.isActive,

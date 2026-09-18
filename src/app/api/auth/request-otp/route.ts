@@ -1,17 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
 import { requestOtp } from "@/modules/auth/services/request-otp.service";
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
 ) {
   try {
-    const body = await request.json();
+    const body =
+      await request.json();
 
-    await requestOtp(body.email);
+    await requestOtp(
+      body.phone,
+    );
 
     return NextResponse.json({
       success: true,
-      message: "OTP sent successfully",
+      message:
+        "OTP sent successfully",
     });
   } catch (error) {
     return NextResponse.json(
@@ -24,7 +32,7 @@ export async function POST(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

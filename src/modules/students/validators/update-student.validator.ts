@@ -34,10 +34,7 @@ export const updateStudentSchema =
     address:
       z.string().optional(),
 
-    tenantId:
-      z.string(),
-
-    classId:
+    sectionId:
       z.string(),
   });
 

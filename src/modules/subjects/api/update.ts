@@ -1,5 +1,4 @@
-import { UpdateSubjectInput }
-  from "../validators/update-subject.validator";
+import { UpdateSubjectInput } from "../validators/update-subject.validator";
 
 interface Input
   extends UpdateSubjectInput {
@@ -14,19 +13,21 @@ export async function updateSubject(
       `/api/subjects/${input.id}`,
       {
         method: "PATCH",
+
         headers: {
           "Content-Type":
             "application/json",
         },
+
         body: JSON.stringify({
-          name: input.name,
-          code: input.code,
+          name:
+            input.name,
+
+          code:
+            input.code,
+
           description:
             input.description,
-          tenantId:
-            input.tenantId,
-          classId:
-            input.classId,
         }),
       }
     );

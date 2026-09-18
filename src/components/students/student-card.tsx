@@ -12,20 +12,21 @@ import {
 
 import {
   Student,
-  Tenant,
+  Section,
   Class,
 } from "@prisma/client";
 
-import { DataCard }
-  from "@/components/ui/data-card";
+import { DataCard } from "@/components/ui/data-card";
 
-import { StatusChip }
-  from "@/components/ui/status-chip";
+import { StatusChip } from "@/components/ui/status-chip";
 
 interface Props {
   student: Student & {
-    tenant: Tenant;
-    class: Class;
+    section:
+      | (Section & {
+          class: Class;
+        })
+      | null;
   };
 }
 
@@ -33,16 +34,14 @@ export function StudentCard({
   student,
 }: Props) {
   async function handleToggle() {
-    const response =
-      await fetch(
-        `/api/students/${student.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+    const response = await fetch(
+      `/api/students/${student.id}`,
+      {
+        method: "DELETE",
+      }
+    );
 
-    const data =
-      await response.json();
+    const data = await response.json();
 
     if (data.success) {
       window.location.reload();
@@ -61,84 +60,44 @@ export function StudentCard({
               fontWeight: 600,
             }}
           >
-            {student.firstName}{" "}
-            {student.lastName}
+            {student.firstName} {student.lastName}
           </Typography>
 
           <Typography
             variant="body2"
             color="text.secondary"
           >
-            Admission No:
-            {" "}
-            {student.admissionNumber}
+            Admission No: {student.admissionNumber}
           </Typography>
         </Box>
 
         <Divider />
 
         <Stack spacing={1}>
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Gender:
-            </strong>
-            {" "}
-            {student.gender}
+          <Typography variant="body2">
+            <strong>Gender:</strong> {student.gender}
           </Typography>
 
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Guardian:
-            </strong>
-            {" "}
-            {student.guardianName ??
-              "-"}
+          <Typography variant="body2">
+            <strong>Guardian:</strong>{" "}
+            {student.guardianName ?? "-"}
           </Typography>
 
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Phone:
-            </strong>
-            {" "}
-            {student.phone ??
-              "-"}
+          <Typography variant="body2">
+            <strong>Phone:</strong>{" "}
+            {student.phone ?? "-"}
           </Typography>
 
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Class:
-            </strong>
-            {" "}
-            {student.class.name}
-            {" - "}
-            {student.class.section}
-          </Typography>
-
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Tenant:
-            </strong>
-            {" "}
-            {student.tenant.name}
+          <Typography variant="body2">
+            <strong>Class:</strong>{" "}
+            {student.section
+              ? `${student.section.class.name} - ${student.section.name}`
+              : "-"}
           </Typography>
         </Stack>
 
         <Box>
-          <StatusChip
-            active={
-              student.isActive
-            }
-          />
+          <StatusChip active={student.isActive} />
         </Box>
 
         <Box
@@ -151,9 +110,7 @@ export function StudentCard({
           <Link
             href={`/dashboard/students/${student.id}/edit`}
           >
-            <Button
-              variant="outlined"
-            >
+            <Button variant="outlined">
               Edit
             </Button>
           </Link>
@@ -165,9 +122,7 @@ export function StudentCard({
                 ? "error"
                 : "success"
             }
-            onClick={
-              handleToggle
-            }
+            onClick={handleToggle}
           >
             {student.isActive
               ? "Deactivate"

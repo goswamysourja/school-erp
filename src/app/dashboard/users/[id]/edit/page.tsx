@@ -6,9 +6,6 @@ import { requireRole }
 import { getUserById }
   from "@/modules/users/services/get-user-by-id.service";
 
-import { getUserTenants }
-  from "@/modules/users/services/get-user-tenants.service";
-
 import { EditUserForm }
   from "@/components/users/edit-user-form";
 
@@ -24,18 +21,26 @@ export default async function EditUserPage(
     }>;
   }
 ) {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing."
+    );
+  }
 
   const { id } =
     await params;
 
   const user =
-    await getUserById(id);
-
-  const tenants =
-    await getUserTenants();
+    await getUserById({
+      id,
+      tenantId:
+        currentUser.tenantId,
+    });
 
   if (!user) {
     return (
@@ -48,8 +53,8 @@ export default async function EditUserPage(
   return (
     <>
       <PageHeader
-        title="Edit User"
-        subtitle="Update user details"
+        title="Edit Teacher"
+        subtitle="Update teacher user details"
       />
 
       <EditUserForm
@@ -57,13 +62,6 @@ export default async function EditUserPage(
         initialName={
           user.name
         }
-        initialRole={
-          user.role
-        }
-        initialTenantId={
-          user.tenantId ?? ""
-        }
-        tenants={tenants}
       />
     </>
   );

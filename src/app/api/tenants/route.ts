@@ -5,13 +5,26 @@ import {
 
 import { Role } from "@prisma/client";
 
-import { createTenant } from "@/modules/tenants/services/create-tenant.service";
 import { requireApiRole } from "@/modules/auth/guards/require-api-role.guard";
-import { getTenants } from "@/modules/tenants/services/get-tenants.service";
 
+import {
+  createTenantSchema,
+} from "@/modules/tenants/validators/tenant.validator";
+
+import {
+  createTenant,
+} from "@/modules/tenants/services/create-tenant.service";
+
+import {
+  getTenants,
+} from "@/modules/tenants/services/get-tenants.service";
+
+import {
+  mapTenantToResponse,
+} from "@/modules/tenants/mappers/tenant.mapper";
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
 ) {
   try {
     await requireApiRole([
@@ -21,12 +34,19 @@ export async function POST(
     const body =
       await request.json();
 
-    const tenant =
-      await createTenant(body);
+    const validatedData =
+      createTenantSchema.parse(body);
+
+    const result =
+      await createTenant(
+        validatedData,
+      );
 
     return NextResponse.json({
       success: true,
-      tenant,
+      tenant: mapTenantToResponse(
+        result.tenant,
+      ),
     });
   } catch (error) {
     return NextResponse.json(
@@ -39,7 +59,7 @@ export async function POST(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
@@ -55,7 +75,9 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      tenants,
+      tenants: tenants.map(
+        mapTenantToResponse,
+      ),
     });
   } catch (error) {
     return NextResponse.json(
@@ -68,7 +90,7 @@ export async function GET() {
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

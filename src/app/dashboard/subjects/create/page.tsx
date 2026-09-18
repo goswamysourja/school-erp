@@ -1,33 +1,34 @@
+import { Role } from "@prisma/client";
+
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
+
 import { PageHeader }
   from "@/components/ui/page-header";
 
 import { CreateSubjectForm }
   from "@/components/subjects/create-subject-form";
 
-import { getSubjectTenants }
-  from "@/modules/subjects/services/get-subject-tenants.service";
-
-import { getSubjectClasses }
-  from "@/modules/subjects/services/get-subject-classes.service";
-
 export default async function CreateSubjectPage() {
-  const tenants =
-    await getSubjectTenants();
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
 
-  const classes =
-    await getSubjectClasses();
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing"
+    );
+  }
 
   return (
     <>
       <PageHeader
         title="Create Subject"
-        subtitle="Create a new subject for a class."
+        subtitle="Create a new subject for your school."
       />
 
-      <CreateSubjectForm
-        tenants={tenants}
-        classes={classes}
-      />
+      <CreateSubjectForm />
     </>
   );
 }

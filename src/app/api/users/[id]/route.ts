@@ -19,18 +19,41 @@ export async function GET(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const { id } =
       await params;
 
     const user =
-      await getUserById(id);
+      await getUserById({
+        id,
+        tenantId:
+          currentUser.tenantId,
+      });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User not found.",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -47,7 +70,7 @@ export async function GET(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
@@ -60,15 +83,31 @@ export async function PATCH(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const body =
       await request.json();
+
+    if (
+      typeof body.name !==
+      "string"
+    ) {
+      throw new Error(
+        "Name is required.",
+      );
+    }
 
     const { id } =
       await params;
@@ -76,7 +115,9 @@ export async function PATCH(
     const user =
       await updateUser({
         id,
-        ...body,
+        name: body.name,
+        tenantId:
+          currentUser.tenantId,
       });
 
     return NextResponse.json({
@@ -94,7 +135,7 @@ export async function PATCH(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
@@ -107,20 +148,29 @@ export async function DELETE(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const { id } =
       await params;
 
     const user =
-      await toggleUserStatus(
-        id
-      );
+      await toggleUserStatus({
+        id,
+        tenantId:
+          currentUser.tenantId,
+      });
 
     return NextResponse.json({
       success: true,
@@ -137,7 +187,7 @@ export async function DELETE(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

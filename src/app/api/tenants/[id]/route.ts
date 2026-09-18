@@ -5,58 +5,25 @@ import {
 
 import { Role } from "@prisma/client";
 
-import { updateTenant } from "@/modules/tenants/services/update-tenant.service";
 import { requireApiRole } from "@/modules/auth/guards/require-api-role.guard";
-import { getTenantById } from "@/modules/tenants/services/get-tenant-by-id.service";
-import { toggleTenantStatus } from "@/modules/tenants/services/toggle-tenant-status.service";
 
+import { getTenantById }
+  from "@/modules/tenants/services/get-tenant-by-id.service";
 
-export async function PATCH(
-  request: NextRequest,
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
-  }
-) {
-  try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+import { updateTenant }
+  from "@/modules/tenants/services/update-tenant.service";
 
-    const body =
-      await request.json();
+import { updateTenantStatus }
+  from "@/modules/tenants/services/toggle-tenant-status.service";
 
-    const { id } =
-      await params;
+import {
+  updateTenantSchema,
+  updateTenantStatusSchema,
+} from "@/modules/tenants/validators/tenant.validator";
 
-    const tenant =
-      await updateTenant({
-        id,
-        ...body,
-      });
-
-    return NextResponse.json({
-      success: true,
-      tenant,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong",
-      },
-      {
-        status: 400,
-      }
-    );
-  }
-}
+import {
+  mapTenantToResponse,
+} from "@/modules/tenants/mappers/tenant.mapper";
 
 export async function GET(
   request: Request,
@@ -73,17 +40,13 @@ export async function GET(
       Role.SUPER_ADMIN,
     ]);
 
-    const { id } =
-      await params;
+    const { id } = await params;
 
-    const tenant =
-      await getTenantById(
-        id
-      );
+    const tenant = await getTenantById(id);
 
     return NextResponse.json({
       success: true,
-      tenant,
+      tenant: mapTenantToResponse(tenant),
     });
   } catch (error) {
     return NextResponse.json(
@@ -100,9 +63,8 @@ export async function GET(
     );
   }
 }
-
-export async function DELETE(
-  request: Request,
+export async function PATCH(
+  request: NextRequest,
   {
     params,
   }: {
@@ -116,17 +78,44 @@ export async function DELETE(
       Role.SUPER_ADMIN,
     ]);
 
-    const { id } =
-      await params;
+    const { id } = await params;
+
+    const body = await request.json();
+
+    /*
+     * Status update
+     */
+    if ("status" in body) {
+      const validatedData =
+        updateTenantStatusSchema.parse(body);
+
+      const tenant =
+        await updateTenantStatus({
+          tenantId: id,
+          status: validatedData.status,
+        });
+
+      return NextResponse.json({
+        success: true,
+        tenant: mapTenantToResponse(tenant),
+      });
+    }
+
+    /*
+     * Tenant metadata update
+     */
+    const validatedData =
+      updateTenantSchema.parse(body);
 
     const tenant =
-      await toggleTenantStatus(
-        id
-      );
+      await updateTenant({
+        tenantId: id,
+        ...validatedData,
+      });
 
     return NextResponse.json({
       success: true,
-      tenant,
+      tenant: mapTenantToResponse(tenant),
     });
   } catch (error) {
     return NextResponse.json(

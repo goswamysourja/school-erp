@@ -7,20 +7,10 @@ export const createClassSchema =
       .min(1)
       .max(50),
 
-    section: z
-      .string()
-      .min(1)
-      .max(10),
-
     academicYear: z
       .string()
       .min(4)
       .max(20),
-
-    tenantId: z.string(),
-
-    classTeacherId:
-      z.string().optional(),
   });
 
 export type CreateClassInput =

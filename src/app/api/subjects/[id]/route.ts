@@ -5,17 +5,13 @@ import {
 
 import { Role } from "@prisma/client";
 
-import { requireApiRole }
-  from "@/modules/auth/guards/require-api-role.guard";
+import { requireApiRole } from "@/modules/auth/guards/require-api-role.guard";
 
-import { getSubjectById }
-  from "@/modules/subjects/services/get-subject-by-id.service";
+import { getSubjectById } from "@/modules/subjects/services/get-subject-by-id.service";
 
-import { updateSubject }
-  from "@/modules/subjects/services/update-subject.service";
+import { updateSubject } from "@/modules/subjects/services/update-subject.service";
 
-import { toggleSubjectStatus }
-  from "@/modules/subjects/services/toggle-subject-status.service";
+import { toggleSubjectStatus } from "@/modules/subjects/services/toggle-subject-status.service";
 
 import {
   updateSubjectSchema,
@@ -32,18 +28,37 @@ export async function GET(
   }
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-      Role.ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing"
+      );
+    }
 
     const { id } =
       await params;
 
     const subject =
       await getSubjectById(
-        id
+        id,
+        currentUser.tenantId,
       );
+
+    if (!subject) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Subject not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -76,10 +91,16 @@ export async function PATCH(
   }
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-      Role.ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing"
+      );
+    }
 
     const body =
       await request.json();
@@ -96,6 +117,8 @@ export async function PATCH(
       await updateSubject({
         id,
         ...validatedData,
+        tenantId:
+          currentUser.tenantId,
       });
 
     return NextResponse.json({
@@ -129,17 +152,24 @@ export async function DELETE(
   }
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-      Role.ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing"
+      );
+    }
 
     const { id } =
       await params;
 
     const subject =
       await toggleSubjectStatus(
-        id
+        id,
+        currentUser.tenantId,
       );
 
     return NextResponse.json({
@@ -156,7 +186,7 @@ export async function DELETE(
             : "Something went wrong",
       },
       {
-        status: 400,
+        status: 400
       }
     );
   }

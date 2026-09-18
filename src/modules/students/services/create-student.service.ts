@@ -18,7 +18,7 @@ interface CreateStudentInput {
 
   tenantId: string;
 
-  classId: string;
+  sectionId: string;
 }
 
 export async function createStudent(
@@ -37,16 +37,44 @@ export async function createStudent(
     );
   }
 
-  if (!tenant.isActive) {
+  if (tenant.status !== "ACTIVE") {
     throw new Error(
       "Tenant is inactive"
+    );
+  }
+
+  const section =
+    await prisma.section.findUnique({
+      where: {
+        id: input.sectionId,
+      },
+    });
+
+  if (!section) {
+    throw new Error(
+      "Section not found"
+    );
+  }
+
+  if (!section.isActive) {
+    throw new Error(
+      "Section is inactive"
+    );
+  }
+
+  if (
+    section.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Section belongs to another tenant"
     );
   }
 
   const classItem =
     await prisma.class.findUnique({
       where: {
-        id: input.classId,
+        id: section.classId,
       },
     });
 
@@ -63,13 +91,15 @@ export async function createStudent(
   }
 
   if (
-    classItem.tenantId !==
-    input.tenantId
-  ) {
-    throw new Error(
-      "Class belongs to another tenant"
-    );
-  }
+  classItem.tenantId !==
+  input.tenantId
+) {
+  throw new Error(
+    "Class belongs to another tenant"
+  );
+}
+
+
 
   const existingStudent =
     await prisma.student.findFirst({
@@ -121,8 +151,8 @@ export async function createStudent(
       tenantId:
         input.tenantId,
 
-      classId:
-        input.classId,
+      sectionId:
+        input.sectionId,
     },
   });
 }

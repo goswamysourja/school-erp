@@ -1,18 +1,13 @@
 import { prisma } from "@/lib/prisma/client";
-import { Role } from "@prisma/client";
 
 interface UpdateClassInput {
   id: string;
 
   name: string;
 
-  section: string;
-
   academicYear: string;
 
   tenantId: string;
-
-  classTeacherId?: string;
 }
 
 export async function updateClass(
@@ -31,6 +26,34 @@ export async function updateClass(
     );
   }
 
+  if (tenant.status !== "ACTIVE") {
+    throw new Error(
+      "Tenant is inactive"
+    );
+  }
+
+  const existingClass =
+    await prisma.class.findUnique({
+      where: {
+        id: input.id,
+      },
+    });
+
+  if (!existingClass) {
+    throw new Error(
+      "Class not found"
+    );
+  }
+
+  if (
+    existingClass.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Class belongs to another tenant"
+    );
+  }
+
   const duplicateClass =
     await prisma.class.findFirst({
       where: {
@@ -39,9 +62,6 @@ export async function updateClass(
 
         name:
           input.name,
-
-        section:
-          input.section,
 
         academicYear:
           input.academicYear,
@@ -58,59 +78,21 @@ export async function updateClass(
     );
   }
 
-  if (input.classTeacherId) {
-    const teacher =
-      await prisma.user.findUnique({
-        where: {
-          id: input.classTeacherId,
-        },
-      });
-
-    if (!teacher) {
-      throw new Error(
-        "Teacher not found"
-      );
-    }
-
-    if (
-      teacher.role !==
-      Role.TEACHER
-    ) {
-      throw new Error(
-        "Selected user is not a teacher"
-      );
-    }
-
-    if (!teacher.isActive) {
-      throw new Error(
-        "Teacher is inactive"
-      );
-    }
-
-    if (
-      teacher.tenantId !==
-      input.tenantId
-    ) {
-      throw new Error(
-        "Teacher belongs to another tenant"
-      );
-    }
-  }
-
   return prisma.class.update({
     where: {
-      id: input.id,
+      id: existingClass.id,
     },
+
     data: {
-      name: input.name,
-      section:
-        input.section,
+      name:
+        input.name,
+
       academicYear:
         input.academicYear,
-      tenantId:
-        input.tenantId,
-      classTeacherId:
-        input.classTeacherId,
+    },
+
+    include: {
+      sections: true,
     },
   });
 }

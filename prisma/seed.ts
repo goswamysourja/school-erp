@@ -1,39 +1,52 @@
-import { PrismaClient, Role } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import {
+  PrismaClient,
+  Role,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: "admin@erp.com",
-    },
-  });
+  const phone =
+    "+919674567809";
+
+  const existingUser =
+    await prisma.user.findUnique({
+      where: {
+        phone,
+      },
+    });
 
   if (existingUser) {
-    console.log("Super Admin already exists");
+    console.log(
+      "Super Admin already exists.",
+    );
     return;
   }
-
-  const passwordHash = await bcrypt.hash(
-    "Admin@123",
-    10
-  );
 
   await prisma.user.create({
     data: {
       name: "Super Admin",
-      email: "admin@erp.com",
-      passwordHash,
+      phone,
       role: Role.SUPER_ADMIN,
+      tenantId: null,
+      isActive: true,
     },
   });
 
-  console.log("Super Admin created");
+  console.log(
+    "Super Admin created successfully.",
+  );
 }
 
 main()
-  .catch(console.error)
+  .catch((error) => {
+    console.error(
+      "Seed failed:",
+      error,
+    );
+
+    process.exit(1);
+  })
   .finally(async () => {
     await prisma.$disconnect();
   });

@@ -8,22 +8,42 @@ import { Role } from "@prisma/client";
 import { requireApiRole } from "@/modules/auth/guards/require-api-role.guard";
 
 import { createUser } from "@/modules/users/services/create-user.service";
-import { getUsers } from "@/modules/users/services/get-users.service";
 
+import { getTenantUsers } from "@/modules/users/services/get-tenant-users.service";
+
+import { createUserSchema } from "@/modules/users/validators/create-user.validator";
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const body =
       await request.json();
 
+    const validatedData =
+      createUserSchema.parse(body);
+
     const user =
-      await createUser(body);
+      await createUser({
+        name:
+          validatedData.name,
+        phone:
+          validatedData.phone,
+        role: Role.TEACHER,
+        tenantId:
+          currentUser.tenantId,
+      });
 
     return NextResponse.json({
       success: true,
@@ -40,19 +60,29 @@ export async function POST(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
 
 export async function GET() {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const users =
-      await getUsers();
+      await getTenantUsers({
+        tenantId:
+          currentUser.tenantId,
+      });
 
     return NextResponse.json({
       success: true,
@@ -69,7 +99,7 @@ export async function GET() {
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

@@ -1,11 +1,26 @@
 import { prisma } from "@/lib/prisma/client";
 
 export async function getSubjectById(
-  id: string
+  id: string,
+  tenantId: string,
 ) {
-  return prisma.subject.findUnique({
-    where: {
-      id,
-    },
-  });
+  const subject =
+    await prisma.subject.findUnique({
+      where: {
+        id,
+      },
+    });
+
+  if (!subject) {
+    return null;
+  }
+
+  if (
+    subject.tenantId !==
+    tenantId
+  ) {
+    return null;
+  }
+
+  return subject;
 }

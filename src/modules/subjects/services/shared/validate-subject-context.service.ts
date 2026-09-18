@@ -22,11 +22,11 @@ export async function validateSubjectContext({
     );
   }
 
-  if (!tenant.isActive) {
-    throw new Error(
-      "Tenant is inactive"
-    );
-  }
+  if (tenant.status !== "ACTIVE") {
+  throw new Error(
+    "Tenant is inactive"
+  );
+}
 
   const classItem =
     await prisma.class.findUnique({

@@ -20,7 +20,7 @@ interface UpdateStudentInput {
 
   tenantId: string;
 
-  classId: string;
+  sectionId: string;
 }
 
 export async function updateStudent(
@@ -39,16 +39,66 @@ export async function updateStudent(
     );
   }
 
-  if (!tenant.isActive) {
+  if (tenant.status !== "ACTIVE") {
     throw new Error(
       "Tenant is inactive"
+    );
+  }
+
+  const student =
+    await prisma.student.findUnique({
+      where: {
+        id: input.id,
+      },
+    });
+
+  if (!student) {
+    throw new Error(
+      "Student not found"
+    );
+  }
+
+  if (
+    student.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Student belongs to another tenant"
+    );
+  }
+
+  const section =
+    await prisma.section.findUnique({
+      where: {
+        id: input.sectionId,
+      },
+    });
+
+  if (!section) {
+    throw new Error(
+      "Section not found"
+    );
+  }
+
+  if (!section.isActive) {
+    throw new Error(
+      "Section is inactive"
+    );
+  }
+
+  if (
+    section.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Section belongs to another tenant"
     );
   }
 
   const classItem =
     await prisma.class.findUnique({
       where: {
-        id: input.classId,
+        id: section.classId,
       },
     });
 
@@ -96,8 +146,9 @@ export async function updateStudent(
 
   return prisma.student.update({
     where: {
-      id: input.id,
+      id: student.id,
     },
+
     data: {
       admissionNumber:
         input.admissionNumber,
@@ -127,11 +178,8 @@ export async function updateStudent(
       address:
         input.address,
 
-      tenantId:
-        input.tenantId,
-
-      classId:
-        input.classId,
+      sectionId:
+        input.sectionId,
     },
   });
 }

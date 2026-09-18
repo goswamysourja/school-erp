@@ -1,24 +1,36 @@
+import { Role } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma/client";
+
 import { generateToken } from "@/lib/auth/jwt";
-import { getCurrentUser }
-  from "@/modules/auth/services/get-current-user.service";
+
+import { getCurrentUser } from "@/modules/auth/services/get-current-user.service";
+
 export async function verifyOtp(
-  email: string,
-  otp: string
+  phone: string,
+  otp: string,
 ) {
-const user = await prisma.user.findUnique({
-  where: {
-    email,
-  },
-});
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        phone,
+      },
+      include: {
+        administeredTenant: true,
+      },
+    });
 
-if (!user) {
-  throw new Error("User not found");
-}
+  if (!user) {
+    throw new Error(
+      "Account not provisioned. Contact your school administrator.",
+    );
+  }
 
-await getCurrentUser(
-  user.id
-);
+  if (!user.isActive) {
+    throw new Error(
+      "User account is inactive.",
+    );
+  }
 
   const latestOtp =
     await prisma.otp.findFirst({
@@ -31,26 +43,61 @@ await getCurrentUser(
     });
 
   if (!latestOtp) {
-    throw new Error("OTP not found");
+    throw new Error(
+      "OTP not found.",
+    );
   }
 
   if (latestOtp.code !== otp) {
-    throw new Error("Invalid OTP");
+    throw new Error(
+      "Invalid OTP.",
+    );
   }
 
   if (
     latestOtp.expiresAt <
     new Date()
   ) {
-    throw new Error("OTP expired");
+    throw new Error(
+      "OTP expired.",
+    );
   }
 
-  const token = generateToken(
-    user.id
+  await prisma.$transaction(
+    async (tx) => {
+      if (
+        user.role === Role.ADMIN &&
+        user.administeredTenant?.status ===
+          "PENDING_ADMIN"
+      ) {
+        await tx.tenant.update({
+          where: {
+            id: user.administeredTenant.id,
+          },
+          data: {
+            status: "ACTIVE",
+          },
+        });
+      }
+
+      await tx.otp.delete({
+        where: {
+          id: latestOtp.id,
+        },
+      });
+    },
   );
+
+  const currentUser =
+    await getCurrentUser(
+      user.id,
+    );
+
+  const token =
+    generateToken(user.id);
 
   return {
     token,
-    user,
+    user: currentUser,
   };
 }

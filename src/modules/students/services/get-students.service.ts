@@ -1,11 +1,21 @@
 import { prisma } from "@/lib/prisma/client";
 
-export async function getStudents() {
+export async function getStudents(
+  tenantId: string,
+) {
   return prisma.student.findMany({
-    include: {
-      tenant: true,
-      class: true,
+    where: {
+      tenantId,
     },
+
+    include: {
+      section: {
+        include: {
+          class: true,
+        },
+      },
+    },
+
     orderBy: {
       createdAt: "desc",
     },

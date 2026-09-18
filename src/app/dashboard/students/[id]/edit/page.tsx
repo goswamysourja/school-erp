@@ -1,58 +1,57 @@
-import { Role }
-  from "@prisma/client";
+import { notFound } from "next/navigation";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { Role } from "@prisma/client";
 
-import { getStudentById }
-  from "@/modules/students/services/get-student-by-id.service";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
-import { getStudentTenants }
-  from "@/modules/students/services/get-student-tenants.service";
+import { getStudentById } from "@/modules/students/services/get-student-by-id.service";
 
-import { getStudentClasses }
-  from "@/modules/students/services/get-student-classes.service";
+import { getStudentSections } from "@/modules/students/services/get-student-sections.service";
 
-import { EditStudentForm }
-  from "@/components/students/edit-student-form";
+import { EditStudentForm } from "@/components/students/edit-student-form";
 
-import { PageHeader }
-  from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
-export default async function EditStudentPage(
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
+interface Props {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function EditStudentPage({
+  params,
+}: Props) {
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing.",
+    );
   }
-) {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
 
   const { id } =
     await params;
 
+  const tenantId =
+    currentUser.tenantId;
+
   const student =
     await getStudentById(
-      id
+      id,
+      tenantId,
     );
-
-  const tenants =
-    await getStudentTenants();
-
-  const classes =
-    await getStudentClasses();
 
   if (!student) {
-    return (
-      <h1>
-        Student not found
-      </h1>
-    );
+    notFound();
   }
+
+  const sections =
+    await getStudentSections({
+      tenantId,
+    });
 
   return (
     <>
@@ -83,8 +82,7 @@ export default async function EditStudentPage(
             : ""
         }
         initialGuardianName={
-          student.guardianName ??
-          ""
+          student.guardianName ?? ""
         }
         initialPhone={
           student.phone ?? ""
@@ -92,14 +90,10 @@ export default async function EditStudentPage(
         initialAddress={
           student.address ?? ""
         }
-        initialTenantId={
-          student.tenantId
+        initialSectionId={
+          student.sectionId ?? ""
         }
-        initialClassId={
-          student.classId
-        }
-        tenants={tenants}
-        classes={classes}
+        sections={sections}
       />
     </>
   );

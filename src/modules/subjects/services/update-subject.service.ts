@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
 
-import { validateSubjectContext } from "./shared/validate-subject-context.service";
-
 interface UpdateSubjectInput {
   id: string;
 
@@ -12,8 +10,6 @@ interface UpdateSubjectInput {
   description?: string;
 
   tenantId: string;
-
-  classId: string;
 }
 
 export async function updateSubject(
@@ -32,17 +28,39 @@ export async function updateSubject(
     );
   }
 
-  await validateSubjectContext({
-    tenantId: input.tenantId,
-    classId: input.classId,
-  });
+  if (
+    subject.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Subject belongs to another tenant"
+    );
+  }
+
+  const tenant =
+    await prisma.tenant.findUnique({
+      where: {
+        id: input.tenantId,
+      },
+    });
+
+  if (!tenant) {
+    throw new Error(
+      "Tenant not found"
+    );
+  }
+
+  if (tenant.status !== "ACTIVE") {
+    throw new Error(
+      "Tenant is inactive"
+    );
+  }
 
   const existingSubject =
     await prisma.subject.findFirst({
       where: {
-        tenantId: input.tenantId,
-
-        classId: input.classId,
+        tenantId:
+          input.tenantId,
 
         NOT: {
           id: input.id,
@@ -50,10 +68,12 @@ export async function updateSubject(
 
         OR: [
           {
-            code: input.code,
+            code:
+              input.code,
           },
           {
-            name: input.name,
+            name:
+              input.name,
           },
         ],
       },
@@ -76,21 +96,18 @@ export async function updateSubject(
 
   return prisma.subject.update({
     where: {
-      id: input.id,
+      id: subject.id,
     },
-    data: {
-      name: input.name,
 
-      code: input.code,
+    data: {
+      name:
+        input.name,
+
+      code:
+        input.code,
 
       description:
         input.description,
-
-      tenantId:
-        input.tenantId,
-
-      classId:
-        input.classId,
     },
   });
 }

@@ -1,60 +1,81 @@
 import Link from "next/link";
 
 import {
+  Box,
   Button,
   Stack,
 } from "@mui/material";
 
 import { Role } from "@prisma/client";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
-import { getStudents }
-  from "@/modules/students/services/get-students.service";
+import { getStudents } from "@/modules/students/services/get-students.service";
 
-import { StudentCard }
-  from "@/components/students/student-card";
+import { StudentCard } from "@/components/students/student-card";
 
-import { PageHeader }
-  from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function StudentsPage() {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing.",
+    );
+  }
 
   const students =
-    await getStudents();
+    await getStudents(
+      currentUser.tenantId,
+    );
 
   return (
     <>
       <PageHeader
         title="Students"
-        subtitle="Manage student records"
+        subtitle="Manage students for your school."
       />
 
-      <Link
-        href="/dashboard/students/create"
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
       >
-        <Button
-          variant="contained"
-          sx={{
-            mb: 3,
+        <Link
+          href="/dashboard/students/create"
+          style={{
+            textDecoration: "none",
           }}
         >
-          Create Student
-        </Button>
-      </Link>
+          <Button variant="contained">
+            Create Student
+          </Button>
+        </Link>
+      </Box>
 
-      <Stack spacing={2}>
-        {students.map(
-          (student) => (
+      <Stack spacing={3}>
+        {students.length === 0 ? (
+          <Box
+            sx={{
+              py: 10,
+              textAlign: "center",
+            }}
+          >
+            No students found.
+          </Box>
+        ) : (
+          students.map((student) => (
             <StudentCard
               key={student.id}
               student={student}
             />
-          )
+          ))
         )}
       </Stack>
     </>

@@ -5,7 +5,6 @@ import { useState } from "react";
 import {
   Alert,
   Button,
-  MenuItem,
   Stack,
   TextField,
 } from "@mui/material";
@@ -13,34 +12,17 @@ import {
 import { FormCard }
   from "@/components/ui/form-card";
 
-interface Tenant {
-  id: string;
-  name: string;
-}
-
 interface Props {
   id: string;
   initialName: string;
-  initialRole: string;
-  initialTenantId: string;
-  tenants: Tenant[];
 }
 
 export function EditUserForm({
   id,
   initialName,
-  initialRole,
-  initialTenantId,
-  tenants,
 }: Props) {
   const [name, setName] =
     useState(initialName);
-
-  const [role, setRole] =
-    useState(initialRole);
-
-  const [tenantId, setTenantId] =
-    useState(initialTenantId);
 
   const [loading, setLoading] =
     useState(false);
@@ -68,8 +50,6 @@ export function EditUserForm({
             },
             body: JSON.stringify({
               name,
-              role,
-              tenantId,
             }),
           }
         );
@@ -121,57 +101,6 @@ export function EditUserForm({
             }
           />
 
-          <TextField
-            select
-            label="Role"
-            fullWidth
-            value={role}
-            onChange={(e) =>
-              setRole(
-                e.target.value
-              )
-            }
-          >
-            <MenuItem value="ADMIN">
-              ADMIN
-            </MenuItem>
-
-            <MenuItem value="TEACHER">
-              TEACHER
-            </MenuItem>
-
-            <MenuItem value="STUDENT">
-              STUDENT
-            </MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            label="Tenant"
-            fullWidth
-            value={tenantId}
-            onChange={(e) =>
-              setTenantId(
-                e.target.value
-              )
-            }
-          >
-            {tenants.map(
-              (tenant) => (
-                <MenuItem
-                  key={
-                    tenant.id
-                  }
-                  value={
-                    tenant.id
-                  }
-                >
-                  {tenant.name}
-                </MenuItem>
-              )
-            )}
-          </TextField>
-
           <Stack
             direction="row"
             spacing={2}
@@ -186,9 +115,7 @@ export function EditUserForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Saving..."

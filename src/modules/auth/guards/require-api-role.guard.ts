@@ -3,25 +3,20 @@ import { Role } from "@prisma/client";
 import { getAuthUser } from "../services/get-auth-user.service";
 
 export async function requireApiRole(
-  allowedRoles: Role[]
+  allowedRoles: Role | Role[],
 ) {
-  const user =
-    await getAuthUser();
+  const user = await getAuthUser();
 
   if (!user) {
-    throw new Error(
-      "Unauthenticated"
-    );
+    throw new Error("Unauthenticated");
   }
 
-  if (
-    !allowedRoles.includes(
-      user.role
-    )
-  ) {
-    throw new Error(
-      "Unauthorized"
-    );
+  const roles = Array.isArray(allowedRoles)
+    ? allowedRoles
+    : [allowedRoles];
+
+  if (!roles.includes(user.role)) {
+    throw new Error("Unauthorized");
   }
 
   return user;

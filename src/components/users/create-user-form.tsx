@@ -5,36 +5,17 @@ import { useState } from "react";
 import {
   Alert,
   Button,
-  MenuItem,
   Stack,
   TextField,
 } from "@mui/material";
 
-import { FormCard }
-  from "@/components/ui/form-card";
+import { FormCard } from "@/components/ui/form-card";
 
-interface Tenant {
-  id: string;
-  name: string;
-}
-
-interface Props {
-  tenants: Tenant[];
-}
-
-export function CreateUserForm({
-  tenants,
-}: Props) {
+export function CreateUserForm() {
   const [name, setName] =
     useState("");
 
-  const [email, setEmail] =
-    useState("");
-
-  const [role, setRole] =
-    useState("TEACHER");
-
-  const [tenantId, setTenantId] =
+  const [phone, setPhone] =
     useState("");
 
   const [loading, setLoading] =
@@ -63,9 +44,8 @@ export function CreateUserForm({
             },
             body: JSON.stringify({
               name,
-              email,
-              role,
-              tenantId,
+              phone,
+              role: "TEACHER",
             }),
           }
         );
@@ -95,9 +75,7 @@ export function CreateUserForm({
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -109,6 +87,7 @@ export function CreateUserForm({
           <TextField
             label="Full Name"
             fullWidth
+            required
             value={name}
             onChange={(e) =>
               setName(
@@ -118,67 +97,18 @@ export function CreateUserForm({
           />
 
           <TextField
-            label="Email"
-            type="email"
+            label="Phone Number"
+            type="tel"
             fullWidth
-            value={email}
+            required
+            value={phone}
             onChange={(e) =>
-              setEmail(
+              setPhone(
                 e.target.value
               )
             }
+            placeholder="9674567809"
           />
-
-          <TextField
-            select
-            label="Role"
-            fullWidth
-            value={role}
-            onChange={(e) =>
-              setRole(
-                e.target.value
-              )
-            }
-          >
-            <MenuItem value="ADMIN">
-              ADMIN
-            </MenuItem>
-
-            <MenuItem value="TEACHER">
-              TEACHER
-            </MenuItem>
-
-            <MenuItem value="TEACHER">
-              TEACHER
-            </MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            label="Tenant"
-            fullWidth
-            value={tenantId}
-            onChange={(e) =>
-              setTenantId(
-                e.target.value
-              )
-            }
-          >
-            {tenants.map(
-              (tenant) => (
-                <MenuItem
-                  key={
-                    tenant.id
-                  }
-                  value={
-                    tenant.id
-                  }
-                >
-                  {tenant.name}
-                </MenuItem>
-              )
-            )}
-          </TextField>
 
           <Stack
             direction="row"
@@ -194,9 +124,7 @@ export function CreateUserForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Creating..."

@@ -1,21 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
 import { verifyOtp } from "@/modules/auth/services/verify-otp.service";
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
 ) {
   try {
-    const body = await request.json();
+    const body =
+      await request.json();
 
-    const result = await verifyOtp(
-      body.email,
-      body.otp
-    );
+    const result =
+      await verifyOtp(
+        body.phone,
+        body.otp,
+      );
 
-    const response = NextResponse.json({
-      success: true,
-      user: result.user,
-    });
+    const response =
+      NextResponse.json({
+        success: true,
+        user: result.user,
+      });
 
     response.cookies.set({
       name: "token",
@@ -24,7 +31,7 @@ export async function POST(
       sameSite: "lax",
       secure: false,
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24,
     });
 
     return response;
@@ -39,7 +46,7 @@ export async function POST(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

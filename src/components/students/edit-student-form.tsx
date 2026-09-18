@@ -13,67 +13,37 @@ import {
 import { FormCard }
   from "@/components/ui/form-card";
 
-interface Tenant {
+interface Section {
   id: string;
   name: string;
-}
-
-interface ClassItem {
-  id: string;
-  name: string;
-  section: string;
 }
 
 interface Props {
   id: string;
-
   initialAdmissionNumber: string;
-
   initialFirstName: string;
   initialLastName: string;
-
   initialGender: string;
-
   initialDateOfBirth?: string;
-
   initialGuardianName?: string;
-
   initialPhone?: string;
-
   initialAddress?: string;
-
-  initialTenantId: string;
-
-  initialClassId: string;
-
-  tenants: Tenant[];
-  classes: ClassItem[];
+  initialSectionId: string;
+  sections: Section[];
 }
 
 export function EditStudentForm({
   id,
-
   initialAdmissionNumber,
-
   initialFirstName,
   initialLastName,
-
   initialGender,
-
   initialDateOfBirth,
-
   initialGuardianName,
-
   initialPhone,
-
   initialAddress,
-
-  initialTenantId,
-
-  initialClassId,
-
-  tenants,
-  classes,
+  initialSectionId,
+  sections,
 }: Props) {
   const [
     admissionNumber,
@@ -125,15 +95,12 @@ export function EditStudentForm({
       initialAddress ?? ""
     );
 
-  const [tenantId, setTenantId] =
-    useState(
-      initialTenantId
-    );
-
-  const [classId, setClassId] =
-    useState(
-      initialClassId
-    );
+  const [
+    sectionId,
+    setSectionId,
+  ] = useState(
+    initialSectionId
+  );
 
   const [loading, setLoading] =
     useState(false);
@@ -155,10 +122,12 @@ export function EditStudentForm({
           `/api/students/${id}`,
           {
             method: "PATCH",
+
             headers: {
               "Content-Type":
                 "application/json",
             },
+
             body: JSON.stringify({
               admissionNumber,
               firstName,
@@ -168,8 +137,7 @@ export function EditStudentForm({
               guardianName,
               phone,
               address,
-              tenantId,
-              classId,
+              sectionId,
             }),
           }
         );
@@ -221,6 +189,7 @@ export function EditStudentForm({
               )
             }
             fullWidth
+            required
           />
 
           <TextField
@@ -232,6 +201,7 @@ export function EditStudentForm({
               )
             }
             fullWidth
+            required
           />
 
           <TextField
@@ -243,6 +213,7 @@ export function EditStudentForm({
               )
             }
             fullWidth
+            required
           />
 
           <TextField
@@ -255,6 +226,7 @@ export function EditStudentForm({
               )
             }
             fullWidth
+            required
           >
             <MenuItem value="MALE">
               Male
@@ -325,55 +297,30 @@ export function EditStudentForm({
 
           <TextField
             select
-            label="Tenant"
-            value={tenantId}
+            label="Section"
+            value={sectionId}
             onChange={(e) =>
-              setTenantId(
+              setSectionId(
                 e.target.value
               )
             }
             fullWidth
+            required
           >
-            {tenants.map(
-              (tenant) => (
-                <MenuItem
-                  key={
-                    tenant.id
-                  }
-                  value={
-                    tenant.id
-                  }
-                >
-                  {tenant.name}
-                </MenuItem>
-              )
-            )}
-          </TextField>
+            <MenuItem
+              value=""
+              disabled
+            >
+              Select Section
+            </MenuItem>
 
-          <TextField
-            select
-            label="Class"
-            value={classId}
-            onChange={(e) =>
-              setClassId(
-                e.target.value
-              )
-            }
-            fullWidth
-          >
-            {classes.map(
-              (classItem) => (
+            {sections.map(
+              (section) => (
                 <MenuItem
-                  key={
-                    classItem.id
-                  }
-                  value={
-                    classItem.id
-                  }
+                  key={section.id}
+                  value={section.id}
                 >
-                  {classItem.name}
-                  {" - "}
-                  {classItem.section}
+                  {section.name}
                 </MenuItem>
               )
             )}

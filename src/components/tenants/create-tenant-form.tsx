@@ -19,6 +19,12 @@ export function CreateTenantForm() {
   const [slug, setSlug] =
     useState("");
 
+  const [adminName, setAdminName] =
+    useState("");
+
+  const [adminPhone, setAdminPhone] =
+    useState("");
+
   const [loading, setLoading] =
     useState(false);
 
@@ -46,6 +52,8 @@ export function CreateTenantForm() {
             body: JSON.stringify({
               name,
               slug,
+              adminName,
+              adminPhone,
             }),
           }
         );
@@ -108,6 +116,29 @@ export function CreateTenantForm() {
             }
           />
 
+          <TextField
+            label="Primary Admin Name"
+            fullWidth
+            value={adminName}
+            onChange={(e) =>
+              setAdminName(
+                e.target.value
+              )
+            }
+          />
+
+          <TextField
+            label="Primary Admin Phone"
+            type="tel"
+            fullWidth
+            value={adminPhone}
+            onChange={(e) =>
+              setAdminPhone(
+                e.target.value
+              )
+            }
+          />
+
           <Stack
             direction="row"
             spacing={2}
@@ -122,9 +153,7 @@ export function CreateTenantForm() {
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Creating..."

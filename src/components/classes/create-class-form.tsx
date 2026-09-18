@@ -5,50 +5,19 @@ import { useState } from "react";
 import {
   Alert,
   Button,
-  MenuItem,
   Stack,
   TextField,
 } from "@mui/material";
 
-import { FormCard }
-  from "@/components/ui/form-card";
+import { FormCard } from "@/components/ui/form-card";
 
-interface Tenant {
-  id: string;
-  name: string;
-}
-
-interface Teacher {
-  id: string;
-  name: string;
-}
-
-interface Props {
-  tenants: Tenant[];
-  teachers: Teacher[];
-}
-
-export function CreateClassForm({
-  tenants,
-  teachers,
-}: Props) {
+export function CreateClassForm() {
   const [name, setName] =
-    useState("");
-
-  const [section, setSection] =
     useState("");
 
   const [
     academicYear,
     setAcademicYear,
-  ] = useState("");
-
-  const [tenantId, setTenantId] =
-    useState("");
-
-  const [
-    classTeacherId,
-    setClassTeacherId,
   ] = useState("");
 
   const [loading, setLoading] =
@@ -77,12 +46,7 @@ export function CreateClassForm({
             },
             body: JSON.stringify({
               name,
-              section,
               academicYear,
-              tenantId,
-              classTeacherId:
-                classTeacherId ||
-                undefined,
             }),
           }
         );
@@ -132,17 +96,7 @@ export function CreateClassForm({
                 e.target.value
               )
             }
-          />
-
-          <TextField
-            label="Section"
-            fullWidth
-            value={section}
-            onChange={(e) =>
-              setSection(
-                e.target.value
-              )
-            }
+            required
           />
 
           <TextField
@@ -154,65 +108,8 @@ export function CreateClassForm({
                 e.target.value
               )
             }
+            required
           />
-
-          <TextField
-            select
-            label="Tenant"
-            fullWidth
-            value={tenantId}
-            onChange={(e) =>
-              setTenantId(
-                e.target.value
-              )
-            }
-          >
-            {tenants.map(
-              (tenant) => (
-                <MenuItem
-                  key={
-                    tenant.id
-                  }
-                  value={
-                    tenant.id
-                  }
-                >
-                  {tenant.name}
-                </MenuItem>
-              )
-            )}
-          </TextField>
-
-          <TextField
-            select
-            label="Class Teacher"
-            fullWidth
-            value={classTeacherId}
-            onChange={(e) =>
-              setClassTeacherId(
-                e.target.value
-              )
-            }
-          >
-            <MenuItem value="">
-              No Teacher
-            </MenuItem>
-
-            {teachers.map(
-              (teacher) => (
-                <MenuItem
-                  key={
-                    teacher.id
-                  }
-                  value={
-                    teacher.id
-                  }
-                >
-                  {teacher.name}
-                </MenuItem>
-              )
-            )}
-          </TextField>
 
           <Stack
             direction="row"
@@ -228,9 +125,7 @@ export function CreateClassForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Creating..."

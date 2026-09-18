@@ -20,12 +20,21 @@ import {
 
 export async function GET() {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const students =
-      await getStudents();
+      await getStudents(
+        currentUser.tenantId,
+      );
 
     return NextResponse.json({
       success: true,
@@ -42,36 +51,51 @@ export async function GET() {
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const body =
       await request.json();
 
     const validatedData =
       createStudentSchema.parse(
-        body
+        body,
       );
 
     const student =
-      await createStudent(
-        validatedData
-      );
+      await createStudent({
+        ...validatedData,
 
-    return NextResponse.json({
-      success: true,
-      student,
-    });
+        tenantId:
+          currentUser.tenantId,
+      });
+
+    return NextResponse.json(
+      {
+        success: true,
+        student,
+      },
+      {
+        status: 201,
+      },
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -83,7 +107,7 @@ export async function POST(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

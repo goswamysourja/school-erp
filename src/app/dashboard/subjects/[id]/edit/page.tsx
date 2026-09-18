@@ -1,19 +1,14 @@
 import { notFound } from "next/navigation";
 
-import { PageHeader }
-  from "@/components/ui/page-header";
+import { Role } from "@prisma/client";
 
-import { EditSubjectForm }
-  from "@/components/subjects/edit-subject-form";
+import { PageHeader } from "@/components/ui/page-header";
 
-import { getSubjectById }
-  from "@/modules/subjects/services/get-subject-by-id.service";
+import { EditSubjectForm } from "@/components/subjects/edit-subject-form";
 
-import { getSubjectTenants }
-  from "@/modules/subjects/services/get-subject-tenants.service";
+import { getSubjectById } from "@/modules/subjects/services/get-subject-by-id.service";
 
-import { getSubjectClasses }
-  from "@/modules/subjects/services/get-subject-classes.service";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
 interface Props {
   params: Promise<{
@@ -24,23 +19,29 @@ interface Props {
 export default async function EditSubjectPage({
   params,
 }: Props) {
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing"
+    );
+  }
+
   const { id } =
     await params;
 
   const subject =
     await getSubjectById(
-      id
+      id,
+      currentUser.tenantId,
     );
 
   if (!subject) {
     notFound();
   }
-
-  const tenants =
-    await getSubjectTenants();
-
-  const classes =
-    await getSubjectClasses();
 
   return (
     <>
@@ -58,17 +59,8 @@ export default async function EditSubjectPage({
           subject.code
         }
         initialDescription={
-          subject.description ??
-          ""
+          subject.description ?? ""
         }
-        initialTenantId={
-          subject.tenantId
-        }
-        initialClassId={
-          subject.classId
-        }
-        tenants={tenants}
-        classes={classes}
       />
     </>
   );

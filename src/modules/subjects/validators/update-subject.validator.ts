@@ -17,11 +17,8 @@ export const updateSubjectSchema =
       .max(500)
       .optional(),
 
-    tenantId:
-      z.string(),
-
-    classId:
-      z.string(),
+    // tenantId:
+    //   z.string(),
   });
 
 export type UpdateSubjectInput =

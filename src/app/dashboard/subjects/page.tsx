@@ -7,6 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 
+import { Role } from "@prisma/client";
+
 import { PageHeader }
   from "@/components/ui/page-header";
 
@@ -16,15 +18,32 @@ import { SubjectCard }
 import { getSubjects }
   from "@/modules/subjects/services/get-subjects.service";
 
+import { requireRole }
+  from "@/modules/auth/guards/require-role.guard";
+
 export default async function SubjectsPage() {
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing"
+    );
+  }
+
   const subjects =
-    await getSubjects();
+    await getSubjects({
+      tenantId:
+        currentUser.tenantId,
+    });
 
   return (
     <>
       <PageHeader
         title="Subject Management"
-        subtitle="Manage subjects across all schools and classes."
+        subtitle="Manage subjects for your school."
       />
 
       <Box
@@ -35,15 +54,15 @@ export default async function SubjectsPage() {
         }}
       >
         <Link
-  href="/dashboard/subjects/create"
-  style={{
-    textDecoration: "none",
-  }}
->
-  <Button variant="contained">
-    Create Subject
-  </Button>
-</Link>
+          href="/dashboard/subjects/create"
+          style={{
+            textDecoration: "none",
+          }}
+        >
+          <Button variant="contained">
+            Create Subject
+          </Button>
+        </Link>
       </Box>
 
       {subjects.length === 0 ? (

@@ -16,12 +16,6 @@ export const createSubjectSchema =
       .string()
       .max(500)
       .optional(),
-
-    tenantId:
-      z.string(),
-
-    classId:
-      z.string(),
   });
 
 export type CreateSubjectInput =

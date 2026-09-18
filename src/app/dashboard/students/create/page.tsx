@@ -3,11 +3,8 @@ import { Role } from "@prisma/client";
 import { requireRole }
   from "@/modules/auth/guards/require-role.guard";
 
-import { getStudentTenants }
-  from "@/modules/students/services/get-student-tenants.service";
-
-import { getStudentClasses }
-  from "@/modules/students/services/get-student-classes.service";
+import { getStudentSections }
+  from "@/modules/students/services/get-student-sections.service";
 
 import { CreateStudentForm }
   from "@/components/students/create-student-form";
@@ -16,15 +13,22 @@ import { PageHeader }
   from "@/components/ui/page-header";
 
 export default async function CreateStudentPage() {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
 
-  const tenants =
-    await getStudentTenants();
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing.",
+    );
+  }
 
-  const classes =
-    await getStudentClasses();
+  const sections =
+    await getStudentSections({
+      tenantId:
+        currentUser.tenantId,
+    });
 
   return (
     <>
@@ -34,8 +38,7 @@ export default async function CreateStudentPage() {
       />
 
       <CreateStudentForm
-        tenants={tenants}
-        classes={classes}
+        sections={sections}
       />
     </>
   );

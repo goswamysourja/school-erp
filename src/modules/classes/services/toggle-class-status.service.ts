@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma/client";
 
 export async function toggleClassStatus(
-  id: string
+  id: string,
+  tenantId: string,
 ) {
   const classItem =
     await prisma.class.findUnique({
@@ -16,10 +17,20 @@ export async function toggleClassStatus(
     );
   }
 
+  if (
+    classItem.tenantId !==
+    tenantId
+  ) {
+    throw new Error(
+      "Class belongs to another tenant"
+    );
+  }
+
   return prisma.class.update({
     where: {
-      id,
+      id: classItem.id,
     },
+
     data: {
       isActive:
         !classItem.isActive,

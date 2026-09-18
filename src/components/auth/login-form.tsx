@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 
 export function LoginForm() {
-    const [email, setEmail] =
+    const [phone, setPhone] =
         useState("");
 
     const [otp, setOtp] =
@@ -34,7 +34,7 @@ export function LoginForm() {
         useState("");
 
     async function handleRequestOtp(
-        e: React.FormEvent
+        e: React.FormEvent,
     ) {
         e.preventDefault();
 
@@ -52,9 +52,9 @@ export function LoginForm() {
                                 "application/json",
                         },
                         body: JSON.stringify({
-                            email,
+                            phone,
                         }),
-                    }
+                    },
                 );
 
             const data =
@@ -62,7 +62,7 @@ export function LoginForm() {
 
             if (!data.success) {
                 throw new Error(
-                    data.message
+                    data.message,
                 );
             }
 
@@ -71,7 +71,7 @@ export function LoginForm() {
             setError(
                 error instanceof Error
                     ? error.message
-                    : "Failed to request OTP"
+                    : "Failed to request OTP",
             );
         } finally {
             setLoading(false);
@@ -93,10 +93,10 @@ export function LoginForm() {
                                 "application/json",
                         },
                         body: JSON.stringify({
-                            email,
+                            phone,
                             otp,
                         }),
-                    }
+                    },
                 );
 
             const data =
@@ -104,7 +104,7 @@ export function LoginForm() {
 
             if (!data.success) {
                 throw new Error(
-                    data.message
+                    data.message,
                 );
             }
 
@@ -114,7 +114,7 @@ export function LoginForm() {
             setError(
                 error instanceof Error
                     ? error.message
-                    : "Verification failed"
+                    : "Verification failed",
             );
         } finally {
             setLoading(false);
@@ -148,9 +148,7 @@ export function LoginForm() {
                                 School ERP
                             </Typography>
 
-                            <Typography
-                                color="text.secondary"
-                            >
+                            <Typography color="text.secondary">
                                 Sign in with OTP
                             </Typography>
                         </Box>
@@ -162,15 +160,16 @@ export function LoginForm() {
                         )}
 
                         <TextField
-                            label="Email"
-                            type="email"
+                            label="Phone Number"
+                            type="tel"
                             fullWidth
-                            value={email}
+                            value={phone}
                             onChange={(e) =>
-                                setEmail(
-                                    e.target.value
+                                setPhone(
+                                    e.target.value,
                                 )
                             }
+                            placeholder="+919674567809"
                         />
 
                         {!otpRequested ? (
@@ -178,7 +177,8 @@ export function LoginForm() {
                                 variant="contained"
                                 size="large"
                                 disabled={
-                                    loading
+                                    loading ||
+                                    !phone.trim()
                                 }
                                 onClick={
                                     handleRequestOtp
@@ -195,26 +195,28 @@ export function LoginForm() {
                         ) : (
                             <>
                                 <Alert severity="success">
-                                    OTP generated.
-                                    Check terminal.
+                                    OTP sent successfully.
                                 </Alert>
 
                                 <TextField
                                     label="OTP"
+                                    type="text"
                                     fullWidth
                                     value={otp}
-                                    onChange={(e) =>
-                                        setOtp(
-                                            e.target.value
-                                        )
-                                    }
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    slotProps={{
+                                        htmlInput: {
+                                            maxLength: 6,
+                                        },
+                                    }}
                                 />
 
                                 <Button
                                     variant="contained"
                                     size="large"
                                     disabled={
-                                        loading
+                                        loading ||
+                                        !otp.trim()
                                     }
                                     onClick={
                                         handleVerifyOtp

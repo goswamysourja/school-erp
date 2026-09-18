@@ -12,8 +12,6 @@ import {
 
 import {
   Subject,
-  Tenant,
-  Class,
 } from "@prisma/client";
 
 import { DataCard }
@@ -23,10 +21,7 @@ import { StatusChip }
   from "@/components/ui/status-chip";
 
 interface Props {
-  subject: Subject & {
-    tenant: Tenant;
-    class: Class;
-  };
+  subject: Subject;
 }
 
 export function SubjectCard({
@@ -95,37 +90,6 @@ export function SubjectCard({
               "-"}
           </Typography>
 
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Class:
-            </strong>{" "}
-            {subject.class.name}
-            {" - "}
-            {subject.class.section}
-          </Typography>
-
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Academic Year:
-            </strong>{" "}
-            {
-              subject.class
-                .academicYear
-            }
-          </Typography>
-
-          <Typography
-            variant="body2"
-          >
-            <strong>
-              Tenant:
-            </strong>{" "}
-            {subject.tenant.name}
-          </Typography>
         </Stack>
 
         <Box>
@@ -144,15 +108,15 @@ export function SubjectCard({
           }}
         >
           <Link
-  href={`/dashboard/subjects/${subject.id}/edit`}
-  style={{
-    textDecoration: "none",
-  }}
->
-  <Button variant="outlined">
-    Edit
-  </Button>
-</Link>
+            href={`/dashboard/subjects/${subject.id}/edit`}
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            <Button variant="outlined">
+              Edit
+            </Button>
+          </Link>
 
           <Button
             variant="contained"

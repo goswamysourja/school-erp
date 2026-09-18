@@ -1,5 +1,4 @@
-import { Role }
-  from "@prisma/client";
+import { Role } from "@prisma/client";
 
 import { requireRole }
   from "@/modules/auth/guards/require-role.guard";
@@ -30,17 +29,7 @@ export default async function EditTenantPage(
     await params;
 
   const tenant =
-    await getTenantById(
-      id
-    );
-
-  if (!tenant) {
-    return (
-      <h1>
-        Tenant not found
-      </h1>
-    );
-  }
+    await getTenantById(id);
 
   return (
     <>
@@ -56,9 +45,6 @@ export default async function EditTenantPage(
         }
         initialSlug={
           tenant.slug
-        }
-        initialIsActive={
-          tenant.isActive
         }
       />
     </>

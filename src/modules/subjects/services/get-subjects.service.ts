@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma/client";
 
-export async function getSubjects() {
+interface GetSubjectsInput {
+  tenantId: string;
+}
+
+export async function getSubjects({
+  tenantId,
+}: GetSubjectsInput) {
   return prisma.subject.findMany({
-    include: {
-      tenant: true,
-      class: true,
+    where: {
+      tenantId,
     },
     orderBy: {
       createdAt: "desc",

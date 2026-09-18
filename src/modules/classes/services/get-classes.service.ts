@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma/client";
 
-export async function getClasses() {
+interface GetClassesInput {
+  tenantId: string;
+}
+
+export async function getClasses({
+  tenantId,
+}: GetClassesInput) {
   return prisma.class.findMany({
-    include: {
-      tenant: true,
-      classTeacher: true,
+    where: {
+      tenantId,
     },
+
     orderBy: {
       createdAt: "desc",
     },

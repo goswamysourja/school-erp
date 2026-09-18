@@ -34,10 +34,7 @@ export const createStudentSchema =
     address:
       z.string().optional(),
 
-    tenantId:
-      z.string(),
-
-    classId:
+    sectionId:
       z.string(),
   });
 

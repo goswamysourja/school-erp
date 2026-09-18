@@ -3,323 +3,319 @@
 import { useState } from "react";
 
 import {
-    Alert,
-    Button,
-    MenuItem,
-    Stack,
-    TextField,
+  Alert,
+  Button,
+  MenuItem,
+  Stack,
+  TextField,
 } from "@mui/material";
 
 import { FormCard }
-    from "@/components/ui/form-card";
+  from "@/components/ui/form-card";
 
-interface Tenant {
+interface SectionItem {
+  id: string;
+  name: string;
+
+  class: {
     id: string;
     name: string;
-}
-
-interface ClassItem {
-    id: string;
-    name: string;
-    section: string;
+  };
 }
 
 interface Props {
-    tenants: Tenant[];
-    classes: ClassItem[];
+  sections: SectionItem[];
 }
 
 export function CreateStudentForm({
-    tenants,
-    classes,
+  sections,
 }: Props) {
-    const [
-        admissionNumber,
-        setAdmissionNumber,
-    ] = useState("");
+  const [
+    admissionNumber,
+    setAdmissionNumber,
+  ] = useState("");
 
-    const [
-        firstName,
-        setFirstName,
-    ] = useState("");
+  const [
+    firstName,
+    setFirstName,
+  ] = useState("");
 
-    const [
-        lastName,
-        setLastName,
-    ] = useState("");
+  const [
+    lastName,
+    setLastName,
+  ] = useState("");
 
-    const [gender, setGender] =
-        useState("MALE");
+  const [gender, setGender] =
+    useState("MALE");
 
-    const [
-        dateOfBirth,
-        setDateOfBirth,
-    ] = useState("");
+  const [
+    dateOfBirth,
+    setDateOfBirth,
+  ] = useState("");
 
-    const [
-        guardianName,
-        setGuardianName,
-    ] = useState("");
+  const [
+    guardianName,
+    setGuardianName,
+  ] = useState("");
 
-    const [phone, setPhone] =
-        useState("");
+  const [phone, setPhone] =
+    useState("");
 
-    const [address, setAddress] =
-        useState("");
+  const [address, setAddress] =
+    useState("");
 
-    const [tenantId, setTenantId] =
-        useState("");
+  const [sectionId, setSectionId] =
+    useState("");
 
-    const [classId, setClassId] =
-        useState("");
+  const [loading, setLoading] =
+    useState(false);
 
-    const [loading, setLoading] =
-        useState(false);
+  const [error, setError] =
+    useState("");
 
-    const [error, setError] =
-        useState("");
+  async function handleSubmit(
+    e: React.FormEvent
+  ) {
+    e.preventDefault();
 
-    async function handleSubmit(
-        e: React.FormEvent
-    ) {
-        e.preventDefault();
+    try {
+      setLoading(true);
+      setError("");
 
-        try {
-            setLoading(true);
-            setError("");
+      const response =
+        await fetch(
+          "/api/students",
+          {
+            method: "POST",
 
-            const response =
-                await fetch(
-                    "/api/students",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            admissionNumber,
-                            firstName,
-                            lastName,
-                            gender,
-                            dateOfBirth,
-                            guardianName,
-                            phone,
-                            address,
-                            tenantId,
-                            classId,
-                        }),
-                    }
-                );
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-            const data =
-                await response.json();
+            body: JSON.stringify({
+              admissionNumber,
+              firstName,
+              lastName,
+              gender,
+              dateOfBirth,
+              guardianName,
+              phone,
+              address,
+              sectionId,
+            }),
+          }
+        );
 
-            if (!data.success) {
-                throw new Error(
-                    data.message
-                );
-            }
+      const data =
+        await response.json();
 
-            window.location.href =
-                "/dashboard/students";
-        } catch (error) {
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to create student"
-            );
-        } finally {
-            setLoading(false);
-        }
+      if (!data.success) {
+        throw new Error(
+          data.message
+        );
+      }
+
+      window.location.href =
+        "/dashboard/students";
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create student"
+      );
+    } finally {
+      setLoading(false);
     }
+  }
 
-    return (
-        <FormCard>
-            <form onSubmit={handleSubmit}>
-                <Stack spacing={3}>
-                    {error && (
-                        <Alert severity="error">
-                            {error}
-                        </Alert>
-                    )}
+  return (
+    <FormCard>
+      <form
+        onSubmit={
+          handleSubmit
+        }
+      >
+        <Stack spacing={3}>
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
 
-                    <TextField
-                        label="Admission Number"
-                        value={admissionNumber}
-                        onChange={(e) =>
-                            setAdmissionNumber(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
+          <TextField
+            label="Admission Number"
+            value={
+              admissionNumber
+            }
+            onChange={(e) =>
+              setAdmissionNumber(
+                e.target.value
+              )
+            }
+            fullWidth
+            required
+          />
 
-                    <TextField
-                        label="First Name"
-                        value={firstName}
-                        onChange={(e) =>
-                            setFirstName(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
+          <TextField
+            label="First Name"
+            value={firstName}
+            onChange={(e) =>
+              setFirstName(
+                e.target.value
+              )
+            }
+            fullWidth
+            required
+          />
 
-                    <TextField
-                        label="Last Name"
-                        value={lastName}
-                        onChange={(e) =>
-                            setLastName(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
+          <TextField
+            label="Last Name"
+            value={lastName}
+            onChange={(e) =>
+              setLastName(
+                e.target.value
+              )
+            }
+            fullWidth
+            required
+          />
 
-                    <TextField
-                        select
-                        label="Gender"
-                        value={gender}
-                        onChange={(e) =>
-                            setGender(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    >
-                        <MenuItem value="MALE">
-                            Male
-                        </MenuItem>
+          <TextField
+            select
+            label="Gender"
+            value={gender}
+            onChange={(e) =>
+              setGender(
+                e.target.value
+              )
+            }
+            fullWidth
+            required
+          >
+            <MenuItem value="MALE">
+              Male
+            </MenuItem>
 
-                        <MenuItem value="FEMALE">
-                            Female
-                        </MenuItem>
+            <MenuItem value="FEMALE">
+              Female
+            </MenuItem>
 
-                        <MenuItem value="OTHER">
-                            Other
-                        </MenuItem>
-                    </TextField>
+            <MenuItem value="OTHER">
+              Other
+            </MenuItem>
+          </TextField>
 
-                    <TextField
-                        type="date"
-                        label="Date Of Birth"
-                        value={dateOfBirth}
-                        onChange={(e) => setDateOfBirth(e.target.value)}
-                        fullWidth
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                        }}
-                    />
+          <TextField
+            type="date"
+            label="Date Of Birth"
+            value={dateOfBirth}
+            onChange={(e) =>
+              setDateOfBirth(
+                e.target.value
+              )
+            }
+            fullWidth
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+              },
+            }}
+          />
 
-                    <TextField
-                        label="Guardian Name"
-                        value={guardianName}
-                        onChange={(e) =>
-                            setGuardianName(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
+          <TextField
+            label="Guardian Name"
+            value={
+              guardianName
+            }
+            onChange={(e) =>
+              setGuardianName(
+                e.target.value
+              )
+            }
+            fullWidth
+          />
 
-                    <TextField
-                        label="Phone"
-                        value={phone}
-                        onChange={(e) =>
-                            setPhone(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
+          <TextField
+            label="Phone"
+            value={phone}
+            onChange={(e) =>
+              setPhone(
+                e.target.value
+              )
+            }
+            fullWidth
+          />
 
-                    <TextField
-                        label="Address"
-                        value={address}
-                        onChange={(e) =>
-                            setAddress(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                        multiline
-                        rows={3}
-                    />
+          <TextField
+            label="Address"
+            value={address}
+            onChange={(e) =>
+              setAddress(
+                e.target.value
+              )
+            }
+            fullWidth
+            multiline
+            rows={3}
+          />
 
-                    <TextField
-                        select
-                        label="Tenant"
-                        value={tenantId}
-                        onChange={(e) =>
-                            setTenantId(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    >
-                        {tenants.map(
-                            (tenant) => (
-                                <MenuItem
-                                    key={tenant.id}
-                                    value={tenant.id}
-                                >
-                                    {tenant.name}
-                                </MenuItem>
-                            )
-                        )}
-                    </TextField>
+          <TextField
+            select
+            label="Section"
+            value={sectionId}
+            onChange={(e) =>
+              setSectionId(
+                e.target.value
+              )
+            }
+            fullWidth
+            required
+          >
+            <MenuItem
+              value=""
+              disabled
+            >
+              Select Section
+            </MenuItem>
 
-                    <TextField
-                        select
-                        label="Class"
-                        value={classId}
-                        onChange={(e) =>
-                            setClassId(
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    >
-                        {classes.map(
-                            (classItem) => (
-                                <MenuItem
-                                    key={classItem.id}
-                                    value={classItem.id}
-                                >
-                                    {classItem.name}
-                                    {" - "}
-                                    {classItem.section}
-                                </MenuItem>
-                            )
-                        )}
-                    </TextField>
+            {sections.map(
+              (section) => (
+                <MenuItem
+                  key={section.id}
+                  value={section.id}
+                >
+                  {section.class.name}
+                  {" - "}
+                  {section.name}
+                </MenuItem>
+              )
+            )}
+          </TextField>
 
-                    <Stack
-                        direction="row"
-                        spacing={2}
-                    >
-                        <Button
-                            variant="outlined"
-                            href="/dashboard/students"
-                        >
-                            Cancel
-                        </Button>
+          <Stack
+            direction="row"
+            spacing={2}
+          >
+            <Button
+              variant="outlined"
+              href="/dashboard/students"
+            >
+              Cancel
+            </Button>
 
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            disabled={loading}
-                        >
-                            {loading
-                                ? "Creating..."
-                                : "Create Student"}
-                        </Button>
-                    </Stack>
-                </Stack>
-            </form>
-        </FormCard>
-    );
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
+            >
+              {loading
+                ? "Creating..."
+                : "Create Student"}
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </FormCard>
+  );
 }

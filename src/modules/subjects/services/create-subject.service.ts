@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
 
-import { validateSubjectContext } from "./shared/validate-subject-context.service";
-
 interface CreateSubjectInput {
   name: string;
 
@@ -10,31 +8,44 @@ interface CreateSubjectInput {
   description?: string;
 
   tenantId: string;
-
-  classId: string;
 }
 
 export async function createSubject(
   input: CreateSubjectInput
 ) {
-  await validateSubjectContext({
-    tenantId: input.tenantId,
-    classId: input.classId,
-  });
+  const tenant =
+    await prisma.tenant.findUnique({
+      where: {
+        id: input.tenantId,
+      },
+    });
+
+  if (!tenant) {
+    throw new Error(
+      "Tenant not found"
+    );
+  }
+
+  if (tenant.status !== "ACTIVE") {
+    throw new Error(
+      "Tenant is inactive"
+    );
+  }
 
   const existingSubject =
     await prisma.subject.findFirst({
       where: {
-        tenantId: input.tenantId,
-
-        classId: input.classId,
+        tenantId:
+          input.tenantId,
 
         OR: [
           {
-            code: input.code,
+            code:
+              input.code,
           },
           {
-            name: input.name,
+            name:
+              input.name,
           },
         ],
       },
@@ -57,18 +68,17 @@ export async function createSubject(
 
   return prisma.subject.create({
     data: {
-      name: input.name,
+      name:
+        input.name,
 
-      code: input.code,
+      code:
+        input.code,
 
       description:
         input.description,
 
       tenantId:
         input.tenantId,
-
-      classId:
-        input.classId,
     },
   });
 }

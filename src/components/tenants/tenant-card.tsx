@@ -5,15 +5,13 @@ import Link from "next/link";
 import {
   Box,
   Button,
+  Chip,
   Stack,
   Typography,
 } from "@mui/material";
 
 import { DataCard }
   from "@/components/ui/data-card";
-
-import { StatusChip }
-  from "@/components/ui/status-chip";
 
 import type { Tenant }
   from "@/modules/tenants/types/tenant.types";
@@ -25,12 +23,38 @@ interface TenantCardProps {
 export function TenantCard({
   tenant,
 }: TenantCardProps) {
+  const statusLabel =
+    tenant.status.replaceAll(
+      "_",
+      " "
+    );
+
+  const canToggle =
+    tenant.status === "ACTIVE" ||
+    tenant.status === "INACTIVE";
+
   async function handleToggle() {
+    if (!canToggle) {
+      return;
+    }
+
+    const nextStatus =
+      tenant.status === "ACTIVE"
+        ? "INACTIVE"
+        : "ACTIVE";
+
     const response =
       await fetch(
         `/api/tenants/${tenant.id}`,
         {
-          method: "DELETE",
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            status: nextStatus,
+          }),
         }
       );
 
@@ -65,8 +89,13 @@ export function TenantCard({
           </Typography>
         </Box>
 
-        <StatusChip
-          active={tenant.isActive}
+        <Chip
+          label={statusLabel}
+          variant="outlined"
+          sx={{
+            width: "fit-content",
+            textTransform: "capitalize",
+          }}
         />
 
         <Stack
@@ -82,15 +111,17 @@ export function TenantCard({
             Edit
           </Button>
 
-          <Button
-            onClick={handleToggle}
-            variant="contained"
-            size="small"
-          >
-            {tenant.isActive
-              ? "Deactivate"
-              : "Activate"}
-          </Button>
+          {canToggle && (
+            <Button
+              onClick={handleToggle}
+              variant="contained"
+              size="small"
+            >
+              {tenant.status === "ACTIVE"
+                ? "Deactivate"
+                : "Activate"}
+            </Button>
+          )}
         </Stack>
       </Stack>
     </DataCard>

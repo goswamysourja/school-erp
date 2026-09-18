@@ -9,23 +9,14 @@ import {
   Typography,
 } from "@mui/material";
 
-import { DataCard }
-  from "@/components/ui/data-card";
+import { DataCard } from "@/components/ui/data-card";
 
-import { StatusChip }
-  from "@/components/ui/status-chip";
+import { StatusChip } from "@/components/ui/status-chip";
 
-import type {
-  Class,
-  Tenant,
-  User,
-} from "@prisma/client";
+import type { Class } from "@prisma/client";
 
 interface ClassCardProps {
-  classItem: Class & {
-    tenant: Tenant;
-    classTeacher: User | null;
-  };
+  classItem: Class;
 }
 
 export function ClassCard({
@@ -37,7 +28,7 @@ export function ClassCard({
         `/api/classes/${classItem.id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
     const data =
@@ -62,13 +53,6 @@ export function ClassCard({
           >
             Class {classItem.name}
           </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-          >
-            Section {classItem.section}
-          </Typography>
         </Box>
 
         <Box>
@@ -80,52 +64,27 @@ export function ClassCard({
           </Typography>
 
           <Typography>
-            {
-              classItem.academicYear
-            }
-          </Typography>
-        </Box>
-
-        <Box>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-          >
-            Tenant
-          </Typography>
-
-          <Typography>
-            {
-              classItem.tenant.name
-            }
-          </Typography>
-        </Box>
-
-        <Box>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-          >
-            Class Teacher
-          </Typography>
-
-          <Typography>
-            {classItem.classTeacher
-              ?.name ??
-              "No Teacher"}
+            {classItem.academicYear}
           </Typography>
         </Box>
 
         <StatusChip
-          active={
-            classItem.isActive
-          }
+          active={classItem.isActive}
         />
 
         <Stack
           direction="row"
           spacing={1}
         >
+          <Button
+            component={Link}
+            href={`/dashboard/sections?classId=${classItem.id}`}
+            variant="contained"
+            size="small"
+          >
+            Manage Sections
+          </Button>
+
           <Button
             component={Link}
             href={`/dashboard/classes/${classItem.id}/edit`}
@@ -137,7 +96,7 @@ export function ClassCard({
 
           <Button
             onClick={handleToggle}
-            variant="contained"
+            variant="outlined"
             size="small"
           >
             {classItem.isActive

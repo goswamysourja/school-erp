@@ -4,20 +4,15 @@ export const createUserSchema =
   z.object({
     name: z
       .string()
-      .min(3)
-      .max(100),
+      .trim()
+      .min(3, "Name must be at least 3 characters.")
+      .max(100, "Name must not exceed 100 characters."),
 
-    email: z
+    phone: z
       .string()
-      .email(),
-
-    role: z.enum([
-      "ADMIN",
-      "TEACHER",
-      "STUDENT",
-    ]),
-
-    tenantId: z.string(),
+      .trim()
+      .min(10, "Phone number must be at least 10 characters.")
+      .max(15, "Phone number must not exceed 15 characters."),
   });
 
 export type CreateUserInput =

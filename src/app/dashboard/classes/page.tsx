@@ -20,12 +20,22 @@ import {
 import Link from "next/link";
 
 export default async function ClassesPage() {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing"
+    );
+  }
 
   const classes =
-    await getClasses();
+    await getClasses({
+      tenantId:
+        currentUser.tenantId,
+    });
 
   return (
     <>

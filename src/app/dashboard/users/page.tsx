@@ -1,60 +1,67 @@
-import { Role } from "@prisma/client";
-
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
-
-import { getUsers }
-  from "@/modules/users/services/get-users.service";
-
-import { UserCard }
-  from "@/components/users/user-card";
-
-import { PageHeader }
-  from "@/components/ui/page-header";
-
-import { SectionContainer }
-  from "@/components/ui/section-container";
-
-  import Link from "next/link";
+import Link from "next/link";
 
 import {
   Button,
   Stack,
 } from "@mui/material";
 
+import { Role } from "@prisma/client";
+
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
+
+import { getTenantUsers } from "@/modules/users/services/get-tenant-users.service";
+
+import { UserCard } from "@/components/users/user-card";
+
+import { PageHeader } from "@/components/ui/page-header";
+
+import { SectionContainer } from "@/components/ui/section-container";
+
 export default async function UsersPage() {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
+
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing.",
+    );
+  }
 
   const users =
-    await getUsers();
+    await getTenantUsers({
+      tenantId:
+        currentUser.tenantId,
+    });
 
   return (
     <>
       <PageHeader
         title="Users"
-        subtitle="Manage platform users"
+        subtitle="Manage users for your school."
       />
 
       <Link href="/dashboard/users/create">
-  <Button
-    variant="contained"
-    sx={{ mb: 3 }}
-  >
-    Create User
-  </Button>
-</Link>
+        <Button
+          variant="contained"
+          sx={{ mb: 3 }}
+        >
+          Create User
+        </Button>
+      </Link>
 
       <SectionContainer>
-        {users.map(
-          (user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-            />
-          )
-        )}
+        <Stack spacing={2}>
+          {users.map(
+            (user) => (
+              <UserCard
+                key={user.id}
+                user={user}
+              />
+            )
+          )}
+        </Stack>
       </SectionContainer>
     </>
   );

@@ -1,15 +1,34 @@
 import { prisma } from "@/lib/prisma/client";
 
 export async function getStudentById(
-  id: string
+  id: string,
+  tenantId: string,
 ) {
-  return prisma.student.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      tenant: true,
-      class: true,
-    },
-  });
+  const student =
+    await prisma.student.findUnique({
+      where: {
+        id,
+      },
+
+      include: {
+        section: {
+          include: {
+            class: true,
+          },
+        },
+      },
+    });
+
+  if (!student) {
+    return null;
+  }
+
+  if (
+    student.tenantId !==
+    tenantId
+  ) {
+    return null;
+  }
+
+  return student;
 }

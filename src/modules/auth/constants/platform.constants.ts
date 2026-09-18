@@ -7,5 +7,4 @@ export const PLATFORM_ROLES = [
 export const TENANT_ROLES = [
   Role.ADMIN,
   Role.TEACHER,
-  Role.STUDENT,
 ] as const;

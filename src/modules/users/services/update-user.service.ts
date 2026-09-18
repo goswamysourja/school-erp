@@ -1,55 +1,68 @@
+import { Role } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma/client";
-import { requireTenantAssignment } from "@/modules/auth/guards/require-tenant-assignment.guard";
-
-
 
 interface UpdateUserInput {
   id: string;
   name: string;
-  role:
-    | "ADMIN"
-    | "TEACHER"
-    | "STUDENT";
-
   tenantId: string;
 }
 
-export async function updateUser(
-  input: UpdateUserInput
-) {
+export async function updateUser({
+  id,
+  name,
+  tenantId,
+}: UpdateUserInput) {
   const tenant =
     await prisma.tenant.findUnique({
       where: {
-        id: input.tenantId,
+        id: tenantId,
       },
     });
 
-   requireTenantAssignment(
-  input.role,
-  input.tenantId
-); 
-
   if (!tenant) {
     throw new Error(
-      "Tenant not found"
+      "Tenant not found.",
     );
   }
 
-  if (!tenant.isActive) {
+  if (tenant.status !== "ACTIVE") {
     throw new Error(
-      "Tenant is inactive"
+      "Tenant is inactive.",
+    );
+  }
+
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+  if (!user) {
+    throw new Error(
+      "User not found.",
+    );
+  }
+
+  if (user.role !== Role.TEACHER) {
+    throw new Error(
+      "Only teacher users can be managed through this endpoint.",
+    );
+  }
+
+  if (user.tenantId !== tenantId) {
+    throw new Error(
+      "User belongs to another tenant.",
     );
   }
 
   return prisma.user.update({
     where: {
-      id: input.id,
+      id,
     },
     data: {
-      name: input.name,
-      role: input.role,
-      tenantId:
-        input.tenantId,
+      name,
     },
   });
 }

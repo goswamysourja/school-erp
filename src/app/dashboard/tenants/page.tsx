@@ -1,4 +1,10 @@
+import Link from "next/link";
+
 import { Role } from "@prisma/client";
+
+import {
+  Button,
+} from "@mui/material";
 
 import { requireRole }
   from "@/modules/auth/guards/require-role.guard";
@@ -15,13 +21,6 @@ import { PageHeader }
 import { SectionContainer }
   from "@/components/ui/section-container";
 
-  import Link from "next/link";
-
-import {
-  Button,
-  Stack,
-} from "@mui/material";
-
 export default async function TenantsPage() {
   await requireRole([
     Role.SUPER_ADMIN,
@@ -37,14 +36,21 @@ export default async function TenantsPage() {
         subtitle="Manage school tenants"
       />
 
-      <Link href="/dashboard/tenants/create">
-  <Button
-    variant="contained"
-    sx={{ mb: 3 }}
-  >
-    Create Tenant
-  </Button>
-</Link>
+      <Link
+        href="/dashboard/tenants/create"
+        style={{
+          textDecoration: "none",
+        }}
+      >
+        <Button
+          variant="contained"
+          sx={{
+            mb: 3,
+          }}
+        >
+          Create Tenant
+        </Button>
+      </Link>
 
       <SectionContainer>
         {tenants.map(

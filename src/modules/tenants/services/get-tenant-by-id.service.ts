@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/prisma/client";
 
-export async function getTenantById(
-  id: string
-) {
-  return prisma.tenant.findUnique({
+export async function getTenantById(tenantId: string) {
+  const tenant = await prisma.tenant.findUnique({
     where: {
-      id,
+      id: tenantId,
     },
   });
+
+  if (!tenant) {
+    throw new Error("Tenant not found.");
+  }
+
+  return tenant;
 }

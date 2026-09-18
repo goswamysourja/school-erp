@@ -4,16 +4,9 @@ export const updateUserSchema =
   z.object({
     name: z
       .string()
-      .min(3)
-      .max(100),
-
-    role: z.enum([
-      "ADMIN",
-      "TEACHER",
-      "STUDENT",
-    ]),
-
-    tenantId: z.string(),
+      .trim()
+      .min(3, "Name must be at least 3 characters.")
+      .max(100, "Name must not exceed 100 characters."),
   });
 
 export type UpdateUserInput =

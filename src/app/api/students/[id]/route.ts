@@ -29,19 +29,27 @@ export async function GET(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const { id } =
       await params;
 
     const student =
       await getStudentById(
-        id
+        id,
+        currentUser.tenantId,
       );
 
     return NextResponse.json({
@@ -59,7 +67,7 @@ export async function GET(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
@@ -72,19 +80,26 @@ export async function PATCH(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const body =
       await request.json();
 
     const validatedData =
       updateStudentSchema.parse(
-        body
+        body,
       );
 
     const { id } =
@@ -93,7 +108,11 @@ export async function PATCH(
     const student =
       await updateStudent({
         id,
+
         ...validatedData,
+
+        tenantId:
+          currentUser.tenantId,
       });
 
     return NextResponse.json({
@@ -111,7 +130,7 @@ export async function PATCH(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }
@@ -124,19 +143,27 @@ export async function DELETE(
     params: Promise<{
       id: string;
     }>;
-  }
+  },
 ) {
   try {
-    await requireApiRole([
-      Role.SUPER_ADMIN,
-    ]);
+    const currentUser =
+      await requireApiRole([
+        Role.ADMIN,
+      ]);
+
+    if (!currentUser.tenantId) {
+      throw new Error(
+        "Tenant assignment missing.",
+      );
+    }
 
     const { id } =
       await params;
 
     const student =
       await toggleStudentStatus(
-        id
+        id,
+        currentUser.tenantId,
       );
 
     return NextResponse.json({
@@ -154,7 +181,7 @@ export async function DELETE(
       },
       {
         status: 400,
-      }
+      },
     );
   }
 }

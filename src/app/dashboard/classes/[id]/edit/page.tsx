@@ -1,54 +1,44 @@
+import { notFound } from "next/navigation";
+
 import { Role } from "@prisma/client";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
-import { getClassById }
-  from "@/modules/classes/services/get-class-by-id.service";
+import { getClassById } from "@/modules/classes/services/get-class-by-id.service";
 
-import { getClassTeachers }
-  from "@/modules/classes/services/get-class-teachers.service";
+import { EditClassForm } from "@/components/classes/edit-class-form";
 
-import { getClassTenants }
-  from "@/modules/classes/services/get-class-tenants.service";
+import { PageHeader } from "@/components/ui/page-header";
 
-import { EditClassForm }
-  from "@/components/classes/edit-class-form";
+export default async function EditClassPage({
+  params,
+}: {
+  params: Promise<{
+    id: string;
+  }>;
+}) {
+  const currentUser =
+    await requireRole([
+      Role.ADMIN,
+    ]);
 
-import { PageHeader }
-  from "@/components/ui/page-header";
-
-export default async function EditClassPage(
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
+  if (!currentUser.tenantId) {
+    throw new Error(
+      "Tenant assignment missing",
+    );
   }
-) {
-  await requireRole([
-    Role.SUPER_ADMIN,
-  ]);
 
   const { id } =
     await params;
 
   const classItem =
-    await getClassById(id);
-
-  const tenants =
-    await getClassTenants();
-
-  const teachers =
-    await getClassTeachers();
+    await getClassById(
+      id,
+      currentUser.tenantId,
+    );
 
   if (!classItem) {
-    return (
-      <h1>
-        Class not found
-      </h1>
-    );
+    notFound();
   }
 
   return (
@@ -63,21 +53,9 @@ export default async function EditClassPage(
         initialName={
           classItem.name
         }
-        initialSection={
-          classItem.section
-        }
         initialAcademicYear={
           classItem.academicYear
         }
-        initialTenantId={
-          classItem.tenantId
-        }
-        initialClassTeacherId={
-          classItem.classTeacherId ??
-          ""
-        }
-        tenants={tenants}
-        teachers={teachers}
       />
     </>
   );

@@ -1,39 +1,36 @@
 import { prisma } from "@/lib/prisma/client";
-import { requireTenantAssignment }
-  from "@/modules/auth/guards/require-tenant-assignment.guard";
+
+import { requireTenantAssignment } from "@/modules/auth/guards/require-tenant-assignment.guard";
 
 interface CreateUserInput {
   name: string;
-  email: string;
-  role:
-  | "ADMIN"
-  | "TEACHER"
-  | "STUDENT";
+
+  phone: string;
+
+  role: "TEACHER";
 
   tenantId: string;
 }
 
-
-
 export async function createUser(
-  input: CreateUserInput
+  input: CreateUserInput,
 ) {
   const existingUser =
     await prisma.user.findUnique({
       where: {
-        email: input.email,
+        phone: input.phone,
       },
     });
 
   if (existingUser) {
     throw new Error(
-      "User already exists"
+      "User already exists",
     );
   }
 
   requireTenantAssignment(
     input.role,
-    input.tenantId
+    input.tenantId,
   );
 
   const tenant =
@@ -45,23 +42,27 @@ export async function createUser(
 
   if (!tenant) {
     throw new Error(
-      "Tenant not found"
+      "Tenant not found",
     );
   }
 
-  if (!tenant.isActive) {
+  if (tenant.status !== "ACTIVE") {
     throw new Error(
-      "Tenant is inactive"
+      "Tenant is inactive",
     );
   }
 
   return prisma.user.create({
     data: {
       name: input.name,
-      email: input.email,
+
+      phone: input.phone,
+
       role: input.role,
+
       tenantId:
         input.tenantId,
+
       isActive: true,
     },
   });

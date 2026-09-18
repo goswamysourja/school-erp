@@ -18,12 +18,15 @@ import { navigationItems }
   from "@/config/navigation.config";
 import { SidebarProfile }
   from "./sidebar-profile";
+import { Role } from "@prisma/client";
 interface Props {
   onNavigate?: () => void;
 
   userName?: string;
   role?: string;
 }
+
+
 
 export function DashboardSidebar({
   onNavigate,
@@ -70,48 +73,41 @@ export function DashboardSidebar({
           flex: 1,
         }}
       >
-        {navigationItems.map(
-          (item) => {
-            const Icon =
-              item.icon;
+        {navigationItems
+          .filter((item) =>
+            item.roles.includes(role as Role),
+          )
+          .map((item) => {
+            const Icon = item.icon;
 
             return (
               <ListItemButton
                 key={item.href}
                 component={Link}
                 href={item.href}
-                onClick={
-                  onNavigate
-                }
-                selected={
-                  pathname ===
-                  item.href
-                }
+                onClick={onNavigate}
+                selected={pathname === item.href}
               >
                 <ListItemIcon>
                   <Icon />
                 </ListItemIcon>
 
                 <ListItemText
-                  primary={
-                    item.label
-                  }
+                  primary={item.label}
                 />
-                
               </ListItemButton>
             );
-          }
-        )}
+          })}
       </List>
 
       {userName &&
-  role && (
-    <SidebarProfile
-      name={userName}
-      role={role}
-    />
-  )}
-  
+        role && (
+          <SidebarProfile
+            name={userName}
+            role={role}
+          />
+        )}
+
     </Box>
   );
 }
