@@ -12,10 +12,24 @@ export async function getStudentSections({
       tenantId,
 
       isActive: true,
+
+      class: {
+        tenantId,
+
+        isActive: true,
+
+        academicYearId: {
+          not: null,
+        },
+      },
     },
 
     include: {
-      class: true,
+      class: {
+        include: {
+          academicYearRecord: true,
+        },
+      },
     },
 
     orderBy: {

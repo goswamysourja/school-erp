@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma/client";
 interface CreateClassInput {
   name: string;
   academicYear: string;
+  academicYearId: string;
   tenantId: string;
 }
 
@@ -28,6 +29,20 @@ export async function createClass(
     );
   }
 
+  const academicYear =
+    await prisma.academicYear.findFirst({
+      where: {
+        id: input.academicYearId,
+        tenantId: input.tenantId,
+      },
+    });
+
+  if (!academicYear) {
+    throw new Error(
+      "Academic year not found"
+    );
+  }
+
   const existingClass =
     await prisma.class.findFirst({
       where: {
@@ -38,7 +53,7 @@ export async function createClass(
           input.name,
 
         academicYear:
-          input.academicYear,
+          academicYear.name,
       },
     });
 
@@ -54,7 +69,10 @@ export async function createClass(
         input.name,
 
       academicYear:
-        input.academicYear,
+        academicYear.name,
+
+      academicYearId:
+        academicYear.id,
 
       tenantId:
         input.tenantId,

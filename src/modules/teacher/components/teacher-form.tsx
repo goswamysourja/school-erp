@@ -213,9 +213,7 @@ export function TeacherForm({
                 <TextField
                   fullWidth
                   label="Full Name"
-                  value={
-                    userName
-                  }
+                  value={userName}
                   disabled
                 />
               </Grid>
@@ -229,9 +227,7 @@ export function TeacherForm({
                 <TextField
                   fullWidth
                   label="Login Phone"
-                  value={
-                    userPhone
-                  }
+                  value={userPhone}
                   disabled
                 />
               </Grid>
@@ -260,6 +256,60 @@ export function TeacherForm({
                   }
                   helperText={
                     errors.employeeId?.message
+                  }
+                />
+              )}
+            />
+          </Grid>
+
+          {/* First Name */}
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
+            <Controller
+              control={control}
+              name="firstName"
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="First Name"
+                  disabled={loading}
+                  error={
+                    !!errors.firstName
+                  }
+                  helperText={
+                    errors.firstName?.message
+                  }
+                />
+              )}
+            />
+          </Grid>
+
+          {/* Last Name */}
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
+            <Controller
+              control={control}
+              name="lastName"
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Last Name"
+                  disabled={loading}
+                  error={
+                    !!errors.lastName
+                  }
+                  helperText={
+                    errors.lastName?.message
                   }
                 />
               )}
@@ -302,6 +352,40 @@ export function TeacherForm({
                     Other
                   </MenuItem>
                 </TextField>
+              )}
+            />
+          </Grid>
+
+          {/* Phone */}
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Phone"
+                  placeholder="Phone number"
+                  disabled={loading}
+                  error={
+                    !!errors.phone
+                  }
+                  helperText={
+                    errors.phone?.message ??
+                    "Managed from the User profile."
+                  }
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                    },
+                  }}
+                />
               )}
             />
           </Grid>

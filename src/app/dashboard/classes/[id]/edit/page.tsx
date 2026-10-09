@@ -56,6 +56,9 @@ export default async function EditClassPage({
         initialAcademicYear={
           classItem.academicYear
         }
+        initialAcademicYearId={
+          classItem.academicYearId ?? undefined
+        }
       />
     </>
   );

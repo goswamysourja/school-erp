@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
 import {
   Alert,
@@ -9,20 +11,24 @@ import {
   TextField,
 } from "@mui/material";
 
-import { FormCard }
-  from "@/components/ui/form-card";
+import { FormCard } from "@/components/ui/form-card";
 
 interface Props {
   id: string;
   initialName: string;
+  initialPhone?: string;
 }
 
 export function EditUserForm({
   id,
   initialName,
+  initialPhone = "",
 }: Props) {
   const [name, setName] =
     useState(initialName);
+
+  const [phone, setPhone] =
+    useState(initialPhone);
 
   const [loading, setLoading] =
     useState(false);
@@ -31,7 +37,7 @@ export function EditUserForm({
     useState("");
 
   async function handleSubmit(
-    e: React.FormEvent
+    e: React.FormEvent,
   ) {
     e.preventDefault();
 
@@ -50,8 +56,9 @@ export function EditUserForm({
             },
             body: JSON.stringify({
               name,
+              phone,
             }),
-          }
+          },
         );
 
       const data =
@@ -59,7 +66,7 @@ export function EditUserForm({
 
       if (!data.success) {
         throw new Error(
-          data.message
+          data.message,
         );
       }
 
@@ -69,7 +76,7 @@ export function EditUserForm({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update user"
+          : "Failed to update user",
       );
     } finally {
       setLoading(false);
@@ -79,9 +86,7 @@ export function EditUserForm({
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -96,9 +101,22 @@ export function EditUserForm({
             value={name}
             onChange={(e) =>
               setName(
-                e.target.value
+                e.target.value,
               )
             }
+          />
+
+          <TextField
+            label="Phone"
+            type="tel"
+            fullWidth
+            value={phone}
+            onChange={(e) =>
+              setPhone(
+                e.target.value,
+              )
+            }
+            helperText="This phone number is used for teacher login."
           />
 
           <Stack

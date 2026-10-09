@@ -9,7 +9,9 @@ import {
 
 import { mapTeacherResponse } from "../mapper";
 
-import type { UpdateTeacherInput } from "../validators";
+import type {
+  UpdateTeacherInput,
+} from "../validators";
 
 export async function updateTeacher(
   teacherId: string,
@@ -21,7 +23,10 @@ export async function updateTeacher(
       teacherId,
     );
 
-  if (teacher.tenantId !== tenantId) {
+  if (
+    teacher.tenantId !==
+    tenantId
+  ) {
     throw new Error(
       "Teacher does not belong to this tenant.",
     );
@@ -49,26 +54,37 @@ export async function updateTeacher(
       },
 
       data: {
-        employeeId: input.employeeId,
+        employeeId:
+          input.employeeId,
 
-        firstName: input.firstName,
+        firstName:
+          input.firstName,
 
-        lastName: input.lastName,
+        lastName:
+          input.lastName,
 
-        gender: input.gender,
+        gender:
+          input.gender,
 
         dateOfBirth:
-          input.dateOfBirth,
+          input.dateOfBirth
+            ? new Date(
+                input.dateOfBirth,
+              )
+            : undefined,
 
-        phone: input.phone,
-
-        address: input.address,
+        address:
+          input.address,
 
         highestQualification:
           input.highestQualification,
 
         joiningDate:
-          input.joiningDate,
+          input.joiningDate
+            ? new Date(
+                input.joiningDate,
+              )
+            : undefined,
       },
 
       include: {

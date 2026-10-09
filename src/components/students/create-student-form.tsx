@@ -10,8 +10,9 @@ import {
   TextField,
 } from "@mui/material";
 
-import { FormCard }
-  from "@/components/ui/form-card";
+import { FormCard } from "@/components/ui/form-card";
+
+import { createStudent } from "@/modules/students/api/create-student";
 
 interface SectionItem {
   id: string;
@@ -74,7 +75,7 @@ export function CreateStudentForm({
     useState("");
 
   async function handleSubmit(
-    e: React.FormEvent
+    e: React.FormEvent,
   ) {
     e.preventDefault();
 
@@ -82,39 +83,17 @@ export function CreateStudentForm({
       setLoading(true);
       setError("");
 
-      const response =
-        await fetch(
-          "/api/students",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              admissionNumber,
-              firstName,
-              lastName,
-              gender,
-              dateOfBirth,
-              guardianName,
-              phone,
-              address,
-              sectionId,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) {
-        throw new Error(
-          data.message
-        );
-      }
+      await createStudent({
+        admissionNumber,
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth,
+        guardianName,
+        phone,
+        address,
+        sectionId,
+      });
 
       window.location.href =
         "/dashboard/students";
@@ -122,7 +101,7 @@ export function CreateStudentForm({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to create student"
+          : "Failed to create student",
       );
     } finally {
       setLoading(false);
@@ -132,9 +111,7 @@ export function CreateStudentForm({
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -150,7 +127,7 @@ export function CreateStudentForm({
             }
             onChange={(e) =>
               setAdmissionNumber(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -162,7 +139,7 @@ export function CreateStudentForm({
             value={firstName}
             onChange={(e) =>
               setFirstName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -174,7 +151,7 @@ export function CreateStudentForm({
             value={lastName}
             onChange={(e) =>
               setLastName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -187,7 +164,7 @@ export function CreateStudentForm({
             value={gender}
             onChange={(e) =>
               setGender(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -212,7 +189,7 @@ export function CreateStudentForm({
             value={dateOfBirth}
             onChange={(e) =>
               setDateOfBirth(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -230,7 +207,7 @@ export function CreateStudentForm({
             }
             onChange={(e) =>
               setGuardianName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -241,7 +218,7 @@ export function CreateStudentForm({
             value={phone}
             onChange={(e) =>
               setPhone(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -252,7 +229,7 @@ export function CreateStudentForm({
             value={address}
             onChange={(e) =>
               setAddress(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -266,7 +243,7 @@ export function CreateStudentForm({
             value={sectionId}
             onChange={(e) =>
               setSectionId(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -289,7 +266,7 @@ export function CreateStudentForm({
                   {" - "}
                   {section.name}
                 </MenuItem>
-              )
+              ),
             )}
           </TextField>
 

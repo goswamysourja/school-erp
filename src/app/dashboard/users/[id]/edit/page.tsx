@@ -1,26 +1,20 @@
 import { Role } from "@prisma/client";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
 
-import { getUserById }
-  from "@/modules/users/services/get-user-by-id.service";
+import { getUserById } from "@/modules/users/services/get-user-by-id.service";
 
-import { EditUserForm }
-  from "@/components/users/edit-user-form";
+import { EditUserForm } from "@/components/users/edit-user-form";
 
-import { PageHeader }
-  from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
-export default async function EditUserPage(
-  {
-    params,
-  }: {
-    params: Promise<{
-      id: string;
-    }>;
-  }
-) {
+export default async function EditUserPage({
+  params,
+}: {
+  params: Promise<{
+    id: string;
+  }>;
+}) {
   const currentUser =
     await requireRole([
       Role.ADMIN,
@@ -28,12 +22,11 @@ export default async function EditUserPage(
 
   if (!currentUser.tenantId) {
     throw new Error(
-      "Tenant assignment missing."
+      "Tenant assignment missing.",
     );
   }
 
-  const { id } =
-    await params;
+  const { id } = await params;
 
   const user =
     await getUserById({
@@ -43,11 +36,7 @@ export default async function EditUserPage(
     });
 
   if (!user) {
-    return (
-      <h1>
-        User not found
-      </h1>
-    );
+    return <h1>User not found</h1>;
   }
 
   return (
@@ -59,9 +48,8 @@ export default async function EditUserPage(
 
       <EditUserForm
         id={user.id}
-        initialName={
-          user.name
-        }
+        initialName={user.name}
+        initialPhone={user.phone}
       />
     </>
   );

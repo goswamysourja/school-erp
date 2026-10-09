@@ -7,6 +7,8 @@ interface UpdateClassInput {
 
   academicYear: string;
 
+  academicYearId: string;
+
   tenantId: string;
 }
 
@@ -54,6 +56,20 @@ export async function updateClass(
     );
   }
 
+  const academicYear =
+    await prisma.academicYear.findFirst({
+      where: {
+        id: input.academicYearId,
+        tenantId: input.tenantId,
+      },
+    });
+
+  if (!academicYear) {
+    throw new Error(
+      "Academic year not found"
+    );
+  }
+
   const duplicateClass =
     await prisma.class.findFirst({
       where: {
@@ -64,7 +80,7 @@ export async function updateClass(
           input.name,
 
         academicYear:
-          input.academicYear,
+          academicYear.name,
 
         NOT: {
           id: input.id,
@@ -88,7 +104,10 @@ export async function updateClass(
         input.name,
 
       academicYear:
-        input.academicYear,
+        academicYear.name,
+
+      academicYearId:
+        academicYear.id,
     },
 
     include: {

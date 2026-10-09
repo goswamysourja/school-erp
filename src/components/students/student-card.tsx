@@ -20,6 +20,8 @@ import { DataCard } from "@/components/ui/data-card";
 
 import { StatusChip } from "@/components/ui/status-chip";
 
+import { toggleStudentStatus } from "@/modules/students/api/toggle-student-status";
+
 interface Props {
   student: Student & {
     section:
@@ -34,19 +36,18 @@ export function StudentCard({
   student,
 }: Props) {
   async function handleToggle() {
-    const response = await fetch(
-      `/api/students/${student.id}`,
-      {
-        method: "DELETE",
-      }
-    );
+    try {
+      await toggleStudentStatus(
+        student.id,
+      );
 
-    const data = await response.json();
-
-    if (data.success) {
       window.location.reload();
-    } else {
-      alert(data.message);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to update student status.",
+      );
     }
   }
 
@@ -60,14 +61,16 @@ export function StudentCard({
               fontWeight: 600,
             }}
           >
-            {student.firstName} {student.lastName}
+            {student.firstName}{" "}
+            {student.lastName}
           </Typography>
 
           <Typography
             variant="body2"
             color="text.secondary"
           >
-            Admission No: {student.admissionNumber}
+            Admission No:{" "}
+            {student.admissionNumber}
           </Typography>
         </Box>
 
@@ -75,12 +78,14 @@ export function StudentCard({
 
         <Stack spacing={1}>
           <Typography variant="body2">
-            <strong>Gender:</strong> {student.gender}
+            <strong>Gender:</strong>{" "}
+            {student.gender}
           </Typography>
 
           <Typography variant="body2">
             <strong>Guardian:</strong>{" "}
-            {student.guardianName ?? "-"}
+            {student.guardianName ??
+              "-"}
           </Typography>
 
           <Typography variant="body2">
@@ -97,7 +102,9 @@ export function StudentCard({
         </Stack>
 
         <Box>
-          <StatusChip active={student.isActive} />
+          <StatusChip
+            active={student.isActive}
+          />
         </Box>
 
         <Box

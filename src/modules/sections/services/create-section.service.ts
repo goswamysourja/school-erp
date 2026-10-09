@@ -58,6 +58,12 @@ export async function createSection(
     );
   }
 
+  if (!classItem.academicYearId) {
+    throw new Error(
+      "Class is not linked to an academic year"
+    );
+  }
+
   const existingSection =
     await prisma.section.findFirst({
       where: {

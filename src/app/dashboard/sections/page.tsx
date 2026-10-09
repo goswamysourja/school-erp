@@ -122,7 +122,8 @@ export default async function SectionsPage({
                 color="text.secondary"
               >
                 Academic Year:{" "}
-                {section.class.academicYear}
+                {section.class.academicYearRecord?.name ??
+                  section.class.academicYear}
               </Typography>
 
               <Typography

@@ -18,7 +18,11 @@ export async function getSections({
     },
 
     include: {
-      class: true,
+      class: {
+        include: {
+          academicYearRecord: true,
+        },
+      },
     },
 
     orderBy: {

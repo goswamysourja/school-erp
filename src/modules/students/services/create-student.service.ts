@@ -91,15 +91,19 @@ export async function createStudent(
   }
 
   if (
-  classItem.tenantId !==
-  input.tenantId
-) {
-  throw new Error(
-    "Class belongs to another tenant"
-  );
-}
+    classItem.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Class belongs to another tenant"
+    );
+  }
 
-
+  if (!classItem.academicYearId) {
+    throw new Error(
+      "Class is not linked to an academic year"
+    );
+  }
 
   const existingStudent =
     await prisma.student.findFirst({

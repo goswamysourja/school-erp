@@ -25,34 +25,50 @@ model Tenant {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  classes  Class[]
-  sections Section[]
-  students Student[]
-  subjects Subject[]
-  teachers Teacher[]
+  classes      Class[]
+  sections     Section[]
+  students     Student[]
+  subjects     Subject[]
+  teachers     Teacher[]
+  certificates Certificate[]
 
   teachingAssignments     TeachingAssignment[]
   classTeacherAssignments ClassTeacherAssignment[]
   users                   User[]                   @relation("TenantUsers")
   adminUser               User?                    @relation("TenantAdministrator", fields: [adminUserId], references: [id], onDelete: SetNull)
 
+  academicYears   AcademicYear[]
+  academicPeriods AcademicPeriod[]
+  marks           Mark[]
+
+  libraryStaffAssignments LibraryStaffAssignment[]
+  libraryCategories       LibraryCategory[]
+  libraryRacks            LibraryRack[]
+  libraryBooks            LibraryBook[]
+  libraryBookCopies       LibraryBookCopy[]
+  libraryLoans            LibraryLoan[]
+  librarySettings         LibrarySettings?
+
   @@map("tenants")
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  phone        String   @unique
-  role         Role
-  tenantId     String?
-  createdAt    DateTime @default(now())
-  isActive     Boolean  @default(true)
-  updatedAt    DateTime @default(now()) @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  role      Role
+  tenantId  String?
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @default(now()) @updatedAt
 
   otps               Otp[]
   teacher            Teacher?
   tenant             Tenant?  @relation("TenantUsers", fields: [tenantId], references: [id])
   administeredTenant Tenant?  @relation("TenantAdministrator")
+
+  libraryLoansIssued   LibraryLoan[] @relation("LibraryLoanIssuedBy")
+  libraryLoansReturned LibraryLoan[] @relation("LibraryLoanReturnedBy")
 
   @@map("users")
 }
@@ -69,16 +85,18 @@ model Otp {
 }
 
 model Class {
-  id           String   @id @default(cuid())
-  name         String
-  academicYear String
-  isActive     Boolean  @default(true)
-  tenantId     String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  academicYear   String
+  isActive       Boolean  @default(true)
+  tenantId       String
+  academicYearId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id])
-  sections Section[]
+  tenant             Tenant        @relation(fields: [tenantId], references: [id])
+  sections           Section[]
+  academicYearRecord AcademicYear? @relation("ClassAcademicYear", fields: [academicYearId], references: [id])
 
   @@unique([tenantId, name, academicYear])
   @@index([tenantId])
@@ -123,8 +141,11 @@ model Student {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  section Section? @relation(fields: [sectionId], references: [id])
-  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  section      Section?      @relation(fields: [sectionId], references: [id])
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  marks        Mark[]
+  certificates Certificate[]
+  libraryLoans LibraryLoan[]
 
   @@unique([tenantId, admissionNumber])
   @@index([tenantId])
@@ -159,7 +180,6 @@ model Teacher {
   lastName             String
   gender               Gender
   dateOfBirth          DateTime?
-  phone                String?
   address              String?
   highestQualification String?
   joiningDate          DateTime?
@@ -174,6 +194,7 @@ model Teacher {
 
   teachingAssignments     TeachingAssignment[]
   classTeacherAssignments ClassTeacherAssignment[]
+  libraryStaffAssignments LibraryStaffAssignment[]
 
   @@unique([tenantId, employeeId])
   @@index([tenantId])
@@ -193,6 +214,7 @@ model TeachingAssignment {
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  marks   Mark[]
 
   @@unique([sectionId, subjectId])
   @@index([tenantId])
@@ -221,6 +243,261 @@ model ClassTeacherAssignment {
   @@map("class_teacher_assignments")
 }
 
+model AcademicYear {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  tenant  Tenant           @relation(fields: [tenantId], references: [id])
+  classes Class[]          @relation("ClassAcademicYear")
+  periods AcademicPeriod[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("academic_years")
+}
+
+model AcademicPeriod {
+  id              String             @id @default(cuid())
+  name            String
+  type            AcademicPeriodType
+  startDate       DateTime
+  endDate         DateTime
+  marksUploadOpen Boolean            @default(false)
+  marksLockedAt   DateTime?
+  academicYearId  String
+  tenantId        String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  marks        Mark[]
+
+  @@unique([academicYearId, name])
+  @@index([tenantId])
+  @@index([academicYearId])
+  @@map("academic_periods")
+}
+
+model Mark {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  studentId            String
+  teachingAssignmentId String
+  academicPeriodId     String
+  marks                Decimal
+  maxMarks             Decimal
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant             Tenant             @relation(fields: [tenantId], references: [id])
+  student            Student            @relation(fields: [studentId], references: [id])
+  teachingAssignment TeachingAssignment @relation(fields: [teachingAssignmentId], references: [id])
+  academicPeriod     AcademicPeriod     @relation(fields: [academicPeriodId], references: [id])
+
+  @@unique([studentId, teachingAssignmentId, academicPeriodId])
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([teachingAssignmentId])
+  @@index([academicPeriodId])
+  @@map("marks")
+}
+
+model Certificate {
+  id                String             @id @default(cuid())
+  certificateNumber String
+  purpose           CertificatePurpose
+  certificateType   String
+  issueDate         DateTime
+
+  studentId String
+  tenantId  String
+
+  eventName   String?
+  eventDate   DateTime?
+  position    String?
+  achievement String?
+  details     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, certificateNumber])
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([issueDate])
+  @@index([purpose])
+  @@map("certificates")
+}
+
+// LIBRARY MANAGEMENT
+
+model LibraryStaffAssignment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  teacherId String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, teacherId])
+  @@index([tenantId, isActive])
+  @@index([teacherId])
+  @@map("library_staff_assignments")
+}
+
+model LibraryCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  books  LibraryBook[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@map("library_categories")
+}
+
+model LibraryRack {
+  id          String   @id @default(cuid())
+  rackNumber  String
+  description String?
+  location    String?
+  isActive    Boolean  @default(true)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  copies LibraryBookCopy[]
+
+  @@unique([tenantId, rackNumber])
+  @@index([tenantId, isActive])
+  @@map("library_racks")
+}
+
+model LibraryBook {
+  id              String   @id @default(cuid())
+  title           String
+  author          String?
+  publisher       String?
+  isbn            String?
+  edition         String?
+  publicationYear Int?
+  language        String?
+  description     String?
+  isActive        Boolean  @default(true)
+  categoryId      String
+  tenantId        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant   Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category LibraryCategory   @relation(fields: [categoryId], references: [id])
+  copies   LibraryBookCopy[]
+
+  @@unique([tenantId, isbn])
+  @@index([tenantId, title])
+  @@index([tenantId, author])
+  @@index([categoryId])
+  @@map("library_books")
+}
+
+model LibraryBookCopy {
+  id              String            @id @default(cuid())
+  accessionNumber String
+  barcode         String?
+  status          LibraryCopyStatus @default(AVAILABLE)
+  purchaseDate    DateTime?
+  purchasePrice   Decimal?          @db.Decimal(10, 2)
+  notes           String?
+  bookId          String
+  rackId          String?
+  tenantId        String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  book   LibraryBook   @relation(fields: [bookId], references: [id])
+  rack   LibraryRack?  @relation(fields: [rackId], references: [id])
+  loans  LibraryLoan[]
+
+  @@unique([tenantId, accessionNumber])
+  @@unique([tenantId, barcode])
+  @@index([tenantId, status])
+  @@index([bookId])
+  @@index([rackId])
+  @@map("library_book_copies")
+}
+
+model LibraryLoan {
+  id                    String            @id @default(cuid())
+  tenantId              String
+  bookCopyId            String
+  studentId             String
+  issuedByUserId        String
+  returnedByUserId      String?
+  issuedAt              DateTime          @default(now())
+  dueAt                 DateTime
+  returnedAt            DateTime?
+  renewalCount          Int               @default(0)
+  status                LibraryLoanStatus @default(ACTIVE)
+  fineAmount            Decimal           @default(0.00) @db.Decimal(10, 2)
+  finePaidAmount        Decimal           @default(0.00) @db.Decimal(10, 2)
+  replacementCharge     Decimal           @default(0.00) @db.Decimal(10, 2)
+  replacementPaidAmount Decimal           @default(0.00) @db.Decimal(10, 2)
+  notes                 String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bookCopy       LibraryBookCopy @relation(fields: [bookCopyId], references: [id])
+  student        Student         @relation(fields: [studentId], references: [id])
+  issuedByUser   User            @relation("LibraryLoanIssuedBy", fields: [issuedByUserId], references: [id])
+  returnedByUser User?           @relation("LibraryLoanReturnedBy", fields: [returnedByUserId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([tenantId, dueAt])
+  @@index([studentId, status])
+  @@index([bookCopyId])
+  @@map("library_loans")
+}
+
+model LibrarySettings {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  maxBooksPerStudent Int      @default(3)
+  loanPeriodDays     Int      @default(14)
+  renewalLimit       Int      @default(1)
+  gracePeriodDays    Int      @default(0)
+  finePerDay         Decimal  @default(1.00) @db.Decimal(10, 2)
+  lostBookCharge     Decimal  @default(0.00) @db.Decimal(10, 2)
+  damagedBookCharge  Decimal  @default(0.00) @db.Decimal(10, 2)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("library_settings")
+}
+
 enum Role {
   SUPER_ADMIN
   ADMIN
@@ -231,4 +508,32 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+}
+
+enum AcademicPeriodType {
+  TERM
+  EXAM
+}
+
+enum CertificatePurpose {
+  TRANSFER
+  COMPETITION_WINNER
+  COMPETITION_PARTICIPANT
+  ACHIEVEMENT
+  PARTICIPATION
+}
+
+enum LibraryCopyStatus {
+  AVAILABLE
+  ISSUED
+  LOST
+  DAMAGED
+  MAINTENANCE
+  REMOVED
+}
+
+enum LibraryLoanStatus {
+  ACTIVE
+  RETURNED
+  LOST
 }

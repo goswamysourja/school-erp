@@ -46,6 +46,60 @@ export async function updateTeachingAssignment(
       input.subjectId,
   });
 
+  const section =
+    await prisma.section.findUnique({
+      where: {
+        id: input.sectionId,
+      },
+
+      include: {
+        class: {
+          select: {
+            id: true,
+            tenantId: true,
+            isActive: true,
+            academicYearId: true,
+          },
+        },
+      },
+    });
+
+  if (!section) {
+    throw new Error(
+      "Section not found.",
+    );
+  }
+
+  if (
+    section.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Section belongs to another tenant.",
+    );
+  }
+
+  if (!section.class.isActive) {
+    throw new Error(
+      "Class is inactive.",
+    );
+  }
+
+  if (
+    section.class.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Class belongs to another tenant.",
+    );
+  }
+
+  if (!section.class.academicYearId) {
+    throw new Error(
+      "Class is not linked to an academic year.",
+    );
+  }
+
   const existingAssignment =
     await prisma.teachingAssignment.findFirst({
       where: {

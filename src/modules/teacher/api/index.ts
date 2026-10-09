@@ -3,4 +3,3 @@ export * from "./update";
 export * from "./get";
 export * from "./list";
 export * from "./toggle-status";
-export * from "./delete";

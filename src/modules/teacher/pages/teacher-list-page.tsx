@@ -10,7 +10,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 
 import {
-  deleteTeacher,
   toggleTeacherStatus,
 } from "../api";
 
@@ -55,32 +54,6 @@ export function TeacherListPage({
     }
   }
 
-  async function handleDelete(
-    teacherId: string,
-  ) {
-    const confirmed = confirm(
-      "Are you sure you want to delete this teacher?",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteTeacher(
-        teacherId,
-      );
-
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "Failed to delete teacher.",
-      );
-    }
-  }
-
   return (
     <>
       <PageHeader
@@ -104,9 +77,6 @@ export function TeacherListPage({
             }
             onToggleStatus={
               handleToggleStatus
-            }
-            onDelete={
-              handleDelete
             }
           />
         )}

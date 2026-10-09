@@ -58,9 +58,6 @@ export async function createTeacher(
               )
             : null,
 
-        phone:
-          input.phone,
-
         address:
           input.address,
 

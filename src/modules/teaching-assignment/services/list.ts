@@ -2,10 +2,15 @@ import { prisma } from "@/lib/prisma/client";
 
 export async function listTeachingAssignments(
   tenantId: string,
+  teacherId?: string,
 ) {
   return prisma.teachingAssignment.findMany({
     where: {
       tenantId,
+
+      ...(teacherId && {
+        teacherId,
+      }),
     },
 
     include: {
@@ -13,7 +18,11 @@ export async function listTeachingAssignments(
 
       section: {
         include: {
-          class: true,
+          class: {
+            include: {
+              academicYearRecord: true,
+            },
+          },
         },
       },
 

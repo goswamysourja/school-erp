@@ -1,18 +1,32 @@
 import { Role } from "@prisma/client";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
+
 import ApartmentIcon from "@mui/icons-material/Apartment";
+
 import PeopleIcon from "@mui/icons-material/People";
+
 import SchoolIcon from "@mui/icons-material/School";
+
 import PersonIcon from "@mui/icons-material/Person";
+
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+
 import AssignmentIcon from "@mui/icons-material/Assignment";
+
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+
+import CardMembershipIcon from "@mui/icons-material/CardMembership";
+
 import type { SvgIconComponent } from "@mui/icons-material";
 
 export interface NavigationItem {
   label: string;
+
   href: string;
+
   icon: SvgIconComponent;
+
   roles: Role[];
 }
 
@@ -29,31 +43,31 @@ export const navigationItems: NavigationItem[] = [
   },
 
   {
-  label: "My Classes",
-  href: "/dashboard/my-classes",
-  icon: SchoolIcon,
-  roles: [
-    Role.TEACHER,
-  ],
-},
+    label: "My Classes",
+    href: "/dashboard/my-classes",
+    icon: SchoolIcon,
+    roles: [
+      Role.TEACHER,
+    ],
+  },
 
-{
-  label: "My Students",
-  href: "/dashboard/my-students",
-  icon: PeopleIcon,
-  roles: [
-    Role.TEACHER,
-  ],
-},
+  {
+    label: "My Students",
+    href: "/dashboard/my-students",
+    icon: PeopleIcon,
+    roles: [
+      Role.TEACHER,
+    ],
+  },
 
-{
-  label: "My Subjects",
-  href: "/dashboard/my-subjects",
-  icon: MenuBookIcon,
-  roles: [
-    Role.TEACHER,
-  ],
-},
+  {
+    label: "My Subjects",
+    href: "/dashboard/my-subjects",
+    icon: MenuBookIcon,
+    roles: [
+      Role.TEACHER,
+    ],
+  },
 
   {
     label: "Tenants",
@@ -109,32 +123,58 @@ export const navigationItems: NavigationItem[] = [
     ],
   },
 
- {
-  label: "Subjects",
-  href: "/dashboard/subjects",
-  icon: MenuBookIcon,
-  roles: [
-    Role.ADMIN,
-  ],
-},
+  {
+    label: "Subjects",
+    href: "/dashboard/subjects",
+    icon: MenuBookIcon,
+    roles: [
+      Role.ADMIN,
+    ],
+  },
 
-{
-  label: "Teaching Assignments",
-  href: "/dashboard/teaching-assignment",
-  icon: AssignmentIcon,
-  roles: [
-    Role.ADMIN,
-  ],
-},
+  {
+    label: "Teaching Assignments",
+    href: "/dashboard/teaching-assignment",
+    icon: AssignmentIcon,
+    roles: [
+      Role.ADMIN,
+    ],
+  },
 
-{
-  label: "Class Teachers",
-  href: "/dashboard/class-teacher-assignment",
-  icon: AssignmentIcon,
-  roles: [
-    Role.ADMIN,
-  ],
-},
+  {
+    label: "Class Teachers",
+    href: "/dashboard/class-teacher-assignment",
+    icon: AssignmentIcon,
+    roles: [
+      Role.ADMIN,
+    ],
+  },
 
+  {
+    label: "Academic Years",
+    href: "/dashboard/academic-years",
+    icon: CalendarMonthOutlinedIcon,
+    roles: [
+      Role.ADMIN,
+    ],
+  },
 
+  {
+    label: "Marks",
+    href: "/dashboard/marks",
+    icon: AssignmentIcon,
+    roles: [
+      Role.ADMIN,
+      Role.TEACHER,
+    ],
+  },
+
+  {
+    label: "Certificates",
+    href: "/dashboard/certificates",
+    icon: CardMembershipIcon,
+    roles: [
+      Role.ADMIN,
+    ],
+  },
 ];

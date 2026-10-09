@@ -10,8 +10,9 @@ import {
   TextField,
 } from "@mui/material";
 
-import { FormCard }
-  from "@/components/ui/form-card";
+import { FormCard } from "@/components/ui/form-card";
+
+import { updateStudent } from "@/modules/students/api/update-student";
 
 interface Section {
   id: string;
@@ -48,59 +49,43 @@ export function EditStudentForm({
   const [
     admissionNumber,
     setAdmissionNumber,
-  ] = useState(
-    initialAdmissionNumber
-  );
+  ] = useState(initialAdmissionNumber);
 
   const [
     firstName,
     setFirstName,
-  ] = useState(
-    initialFirstName
-  );
+  ] = useState(initialFirstName);
 
   const [
     lastName,
     setLastName,
-  ] = useState(
-    initialLastName
-  );
+  ] = useState(initialLastName);
 
   const [gender, setGender] =
-    useState(
-      initialGender
-    );
+    useState(initialGender);
 
   const [
     dateOfBirth,
     setDateOfBirth,
-  ] = useState(
-    initialDateOfBirth ?? ""
-  );
+  ] = useState(initialDateOfBirth ?? "");
 
   const [
     guardianName,
     setGuardianName,
   ] = useState(
-    initialGuardianName ?? ""
+    initialGuardianName ?? "",
   );
 
   const [phone, setPhone] =
-    useState(
-      initialPhone ?? ""
-    );
+    useState(initialPhone ?? "");
 
   const [address, setAddress] =
-    useState(
-      initialAddress ?? ""
-    );
+    useState(initialAddress ?? "");
 
   const [
     sectionId,
     setSectionId,
-  ] = useState(
-    initialSectionId
-  );
+  ] = useState(initialSectionId);
 
   const [loading, setLoading] =
     useState(false);
@@ -109,7 +94,7 @@ export function EditStudentForm({
     useState("");
 
   async function handleSubmit(
-    e: React.FormEvent
+    e: React.FormEvent,
   ) {
     e.preventDefault();
 
@@ -117,39 +102,17 @@ export function EditStudentForm({
       setLoading(true);
       setError("");
 
-      const response =
-        await fetch(
-          `/api/students/${id}`,
-          {
-            method: "PATCH",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              admissionNumber,
-              firstName,
-              lastName,
-              gender,
-              dateOfBirth,
-              guardianName,
-              phone,
-              address,
-              sectionId,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) {
-        throw new Error(
-          data.message
-        );
-      }
+      await updateStudent(id, {
+        admissionNumber,
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth,
+        guardianName,
+        phone,
+        address,
+        sectionId,
+      });
 
       window.location.href =
         "/dashboard/students";
@@ -157,7 +120,7 @@ export function EditStudentForm({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update student"
+          : "Failed to update student",
       );
     } finally {
       setLoading(false);
@@ -167,9 +130,7 @@ export function EditStudentForm({
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -180,12 +141,10 @@ export function EditStudentForm({
 
           <TextField
             label="Admission Number"
-            value={
-              admissionNumber
-            }
+            value={admissionNumber}
             onChange={(e) =>
               setAdmissionNumber(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -197,7 +156,7 @@ export function EditStudentForm({
             value={firstName}
             onChange={(e) =>
               setFirstName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -209,7 +168,7 @@ export function EditStudentForm({
             value={lastName}
             onChange={(e) =>
               setLastName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -222,7 +181,7 @@ export function EditStudentForm({
             value={gender}
             onChange={(e) =>
               setGender(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -247,7 +206,7 @@ export function EditStudentForm({
             value={dateOfBirth}
             onChange={(e) =>
               setDateOfBirth(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -260,12 +219,10 @@ export function EditStudentForm({
 
           <TextField
             label="Guardian Name"
-            value={
-              guardianName
-            }
+            value={guardianName}
             onChange={(e) =>
               setGuardianName(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -275,9 +232,7 @@ export function EditStudentForm({
             label="Phone"
             value={phone}
             onChange={(e) =>
-              setPhone(
-                e.target.value
-              )
+              setPhone(e.target.value)
             }
             fullWidth
           />
@@ -287,7 +242,7 @@ export function EditStudentForm({
             value={address}
             onChange={(e) =>
               setAddress(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -301,7 +256,7 @@ export function EditStudentForm({
             value={sectionId}
             onChange={(e) =>
               setSectionId(
-                e.target.value
+                e.target.value,
               )
             }
             fullWidth
@@ -322,7 +277,7 @@ export function EditStudentForm({
                 >
                   {section.name}
                 </MenuItem>
-              )
+              ),
             )}
           </TextField>
 
@@ -340,9 +295,7 @@ export function EditStudentForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={
-                loading
-              }
+              disabled={loading}
             >
               {loading
                 ? "Saving..."

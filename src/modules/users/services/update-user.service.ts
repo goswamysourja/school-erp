@@ -5,12 +5,14 @@ import { prisma } from "@/lib/prisma/client";
 interface UpdateUserInput {
   id: string;
   name: string;
+  phone?: string;
   tenantId: string;
 }
 
 export async function updateUser({
   id,
   name,
+  phone,
   tenantId,
 }: UpdateUserInput) {
   const tenant =
@@ -57,12 +59,22 @@ export async function updateUser({
     );
   }
 
+  const normalizedPhone =
+    phone?.trim();
+
   return prisma.user.update({
     where: {
       id,
     },
+
     data: {
       name,
+
+      ...(normalizedPhone
+        ? {
+            phone: normalizedPhone,
+          }
+        : {}),
     },
   });
 }

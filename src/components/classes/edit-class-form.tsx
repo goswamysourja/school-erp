@@ -1,43 +1,130 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Alert,
   Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
 } from "@mui/material";
 
 import { FormCard } from "@/components/ui/form-card";
 
+interface AcademicYearOption {
+  id: string;
+  name: string;
+}
+
+interface AcademicYearsResponse {
+  success: boolean;
+  message?: string;
+  academicYears?: AcademicYearOption[];
+}
+
 interface Props {
   id: string;
 
   initialName: string;
+
   initialAcademicYear: string;
+
+  initialAcademicYearId?: string;
 }
 
 export function EditClassForm({
   id,
   initialName,
   initialAcademicYear,
+  initialAcademicYearId,
 }: Props) {
   const [name, setName] =
     useState(initialName);
 
   const [
-    academicYear,
-    setAcademicYear,
+    academicYearId,
+    setAcademicYearId,
   ] = useState(
-    initialAcademicYear
+    initialAcademicYearId ?? ""
   );
+
+  const [
+    academicYears,
+    setAcademicYears,
+  ] = useState<AcademicYearOption[]>([]);
+
+  const [loadingYears, setLoadingYears] =
+    useState(true);
 
   const [loading, setLoading] =
     useState(false);
 
   const [error, setError] =
     useState("");
+
+  useEffect(() => {
+    async function loadAcademicYears() {
+      try {
+        setLoadingYears(true);
+        setError("");
+
+        const response =
+          await fetch(
+            "/api/academic-years"
+          );
+
+        const data: AcademicYearsResponse =
+          await response.json();
+
+        if (
+          !response.ok ||
+          !data.success
+        ) {
+          throw new Error(
+            data.message ??
+              "Failed to load academic years"
+          );
+        }
+
+        const years =
+          data.academicYears ?? [];
+
+        setAcademicYears(years);
+
+        if (!initialAcademicYearId) {
+          const matchingYear =
+            years.find(
+              (academicYear) =>
+                academicYear.name ===
+                initialAcademicYear
+            );
+
+          if (matchingYear) {
+            setAcademicYearId(
+              matchingYear.id
+            );
+          }
+        }
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load academic years"
+        );
+      } finally {
+        setLoadingYears(false);
+      }
+    }
+
+    loadAcademicYears();
+  }, [
+    initialAcademicYear,
+    initialAcademicYearId,
+  ]);
 
   async function handleSubmit(
     e: React.FormEvent
@@ -47,6 +134,19 @@ export function EditClassForm({
     try {
       setLoading(true);
       setError("");
+
+      const selectedAcademicYear =
+        academicYears.find(
+          (academicYear) =>
+            academicYear.id ===
+            academicYearId
+        );
+
+      if (!selectedAcademicYear) {
+        throw new Error(
+          "Please select an academic year."
+        );
+      }
 
       const response =
         await fetch(
@@ -59,7 +159,10 @@ export function EditClassForm({
             },
             body: JSON.stringify({
               name,
-              academicYear,
+              academicYear:
+                selectedAcademicYear.name,
+              academicYearId:
+                selectedAcademicYear.id,
             }),
           }
         );
@@ -69,7 +172,8 @@ export function EditClassForm({
 
       if (!data.success) {
         throw new Error(
-          data.message
+          data.message ??
+            "Failed to update class"
         );
       }
 
@@ -112,17 +216,44 @@ export function EditClassForm({
             required
           />
 
-          <TextField
-            label="Academic Year"
+          <FormControl
             fullWidth
-            value={academicYear}
-            onChange={(e) =>
-              setAcademicYear(
-                e.target.value
-              )
-            }
             required
-          />
+            disabled={
+              loadingYears ||
+              loading
+            }
+          >
+            <InputLabel id="academic-year-label">
+              Academic Year
+            </InputLabel>
+
+            <Select
+              labelId="academic-year-label"
+              value={academicYearId}
+              label="Academic Year"
+              onChange={(e) =>
+                setAcademicYearId(
+                  e.target.value
+                )
+              }
+            >
+              {academicYears.map(
+                (academicYear) => (
+                  <MenuItem
+                    key={
+                      academicYear.id
+                    }
+                    value={
+                      academicYear.id
+                    }
+                  >
+                    {academicYear.name}
+                  </MenuItem>
+                )
+              )}
+            </Select>
+          </FormControl>
 
           <Stack
             direction="row"
@@ -138,7 +269,13 @@ export function EditClassForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={
+                loading ||
+                loadingYears ||
+                academicYears.length ===
+                  0 ||
+                !academicYearId
+              }
             >
               {loading
                 ? "Saving..."

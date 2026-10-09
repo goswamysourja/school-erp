@@ -13,7 +13,11 @@ export async function getStudentById(
       include: {
         section: {
           include: {
-            class: true,
+            class: {
+              include: {
+                academicYearRecord: true,
+              },
+            },
           },
         },
       },

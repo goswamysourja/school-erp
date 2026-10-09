@@ -11,6 +11,10 @@ export const updateClassSchema =
       .string()
       .min(1)
       .max(20),
+
+    academicYearId: z
+      .string()
+      .min(1),
   });
 
 export type UpdateClassInput =

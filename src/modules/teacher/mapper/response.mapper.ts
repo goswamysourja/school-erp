@@ -1,4 +1,4 @@
-import {
+import type {
   TeacherResponse,
   TeacherWithRelations,
 } from "../types";
@@ -6,43 +6,58 @@ import {
 export function mapTeacherResponse(
   teacher: TeacherWithRelations,
 ): TeacherResponse {
- return {
-  id: teacher.id,
+  return {
+    id: teacher.id,
 
-  employeeId: teacher.employeeId,
+    employeeId:
+      teacher.employeeId,
 
-  firstName: teacher.firstName,
+    firstName:
+      teacher.firstName,
 
-  lastName: teacher.lastName,
+    lastName:
+      teacher.lastName,
 
-  fullName: `${teacher.firstName} ${teacher.lastName}`,
+    fullName:
+      `${teacher.firstName} ${teacher.lastName}`,
 
-  gender: teacher.gender,
+    gender:
+      teacher.gender,
 
-  dateOfBirth: teacher.dateOfBirth,
+    dateOfBirth:
+      teacher.dateOfBirth,
 
-  phone: teacher.phone,
+    address:
+      teacher.address,
 
-  address: teacher.address,
+    highestQualification:
+      teacher.highestQualification,
 
-  highestQualification: teacher.highestQualification,
+    joiningDate:
+      teacher.joiningDate,
 
-  joiningDate: teacher.joiningDate,
+    isActive:
+      teacher.isActive,
 
-  isActive: teacher.isActive,
+    tenantId:
+      teacher.tenantId,
 
-  tenantId: teacher.tenantId,
+    tenantName:
+      teacher.tenant.name,
 
-  tenantName: teacher.tenant.name,
+    userId:
+      teacher.userId,
 
-  userId: teacher.userId,
+    userName:
+      teacher.user.name,
 
-  userName: teacher.user.name,
+    userPhone:
+      teacher.user.phone,
 
-  userPhone: teacher.user.phone,
+    createdAt:
+      teacher.createdAt,
 
-  createdAt: teacher.createdAt,
-
-  updatedAt: teacher.updatedAt,
-};
+    updatedAt:
+      teacher.updatedAt,
+  };
 }

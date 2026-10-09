@@ -11,6 +11,10 @@ export const createClassSchema =
       .string()
       .min(4)
       .max(20),
+
+    academicYearId: z
+      .string()
+      .min(1),
   });
 
 export type CreateClassInput =

@@ -109,6 +109,16 @@ export async function PATCH(
       );
     }
 
+    if (
+      typeof body.phone !==
+        "string" ||
+      !body.phone.trim()
+    ) {
+      throw new Error(
+        "Phone is required.",
+      );
+    }
+
     const { id } =
       await params;
 
@@ -116,6 +126,7 @@ export async function PATCH(
       await updateUser({
         id,
         name: body.name,
+        phone: body.phone,
         tenantId:
           currentUser.tenantId,
       });

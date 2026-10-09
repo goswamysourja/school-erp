@@ -123,6 +123,12 @@ export async function updateStudent(
     );
   }
 
+  if (!classItem.academicYearId) {
+    throw new Error(
+      "Class is not linked to an academic year"
+    );
+  }
+
   const existingStudent =
     await prisma.student.findFirst({
       where: {

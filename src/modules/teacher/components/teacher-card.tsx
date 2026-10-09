@@ -8,11 +8,9 @@ import type {
   TeacherResponse,
 } from "../types";
 
-import { DataCard }
-  from "@/components/ui/data-card";
+import { DataCard } from "@/components/ui/data-card";
 
-import { StatusChip }
-  from "@/components/ui/status-chip";
+import { StatusChip } from "@/components/ui/status-chip";
 
 interface Props {
   teacher: TeacherResponse;
@@ -44,13 +42,8 @@ export function TeacherCard({
 
         <Stack spacing={0.5}>
           <Typography variant="body2">
-            <strong>User Phone:</strong>{" "}
-            {teacher.userPhone}
-          </Typography>
-
-          <Typography variant="body2">
             <strong>Phone:</strong>{" "}
-            {teacher.phone ?? "-"}
+            {teacher.userPhone || "-"}
           </Typography>
 
           <Typography variant="body2">
@@ -62,8 +55,8 @@ export function TeacherCard({
             <strong>Joined:</strong>{" "}
             {teacher.joiningDate
               ? new Date(
-                teacher.joiningDate,
-              ).toLocaleDateString()
+                  teacher.joiningDate,
+                ).toLocaleDateString()
               : "-"}
           </Typography>
         </Stack>

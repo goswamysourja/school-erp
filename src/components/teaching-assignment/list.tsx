@@ -30,6 +30,10 @@ interface Assignment {
     class: {
       name: string;
       academicYear: string;
+
+      academicYearRecord?: {
+        name: string;
+      } | null;
     };
   };
 
@@ -145,10 +149,10 @@ export function TeachingAssignmentList({
                 </TableCell>
 
                 <TableCell>
-                  {
-                    assignment.section
-                      .class.academicYear
-                  }
+                  {assignment.section.class
+                    .academicYearRecord?.name ??
+                    assignment.section.class
+                      .academicYear}
                 </TableCell>
 
                 <TableCell align="right">

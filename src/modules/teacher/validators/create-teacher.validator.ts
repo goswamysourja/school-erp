@@ -4,25 +4,44 @@ export const teacherFormSchema = z.object({
   employeeId: z
     .string()
     .trim()
-    .min(1, "Employee ID is required.")
-    .max(30, "Employee ID cannot exceed 30 characters."),
+    .min(
+      1,
+      "Employee ID is required.",
+    )
+    .max(
+      30,
+      "Employee ID cannot exceed 30 characters.",
+    ),
 
   firstName: z
     .string()
     .trim()
-    .min(2, "First name must contain at least 2 characters.")
-    .max(100, "First name cannot exceed 100 characters."),
+    .min(
+      2,
+      "First name must contain at least 2 characters.",
+    )
+    .max(
+      100,
+      "First name cannot exceed 100 characters.",
+    ),
 
   lastName: z
     .string()
     .trim()
-    .min(2, "Last name must contain at least 2 characters.")
-    .max(100, "Last name cannot exceed 100 characters."),
+    .min(
+      2,
+      "Last name must contain at least 2 characters.",
+    )
+    .max(
+      100,
+      "Last name cannot exceed 100 characters.",
+    ),
 
   gender: z.enum(
     ["MALE", "FEMALE", "OTHER"],
     {
-      message: "Please select a valid gender.",
+      message:
+        "Please select a valid gender.",
     },
   ),
 
@@ -64,18 +83,23 @@ export const teacherFormSchema = z.object({
     .optional(),
 });
 
-
 export const createTeacherSchema =
-  teacherFormSchema.extend({
-    userId: z
-      .string()
-      .cuid("Invalid user id."),
-  });
-
+  teacherFormSchema
+    .extend({
+      userId: z
+        .string()
+        .cuid("Invalid user id."),
+    })
+    .omit({
+      phone: true,
+    });
 
 export type CreateTeacherInput =
-  z.infer<typeof createTeacherSchema>;
-
+  z.infer<
+    typeof createTeacherSchema
+  >;
 
 export type TeacherFormInput =
-  z.infer<typeof teacherFormSchema>;
+  z.infer<
+    typeof teacherFormSchema
+  >;

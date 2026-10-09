@@ -11,7 +11,11 @@ export async function getSectionById(
       },
 
       include: {
-        class: true,
+        class: {
+          include: {
+            academicYearRecord: true,
+          },
+        },
       },
     });
 

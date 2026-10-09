@@ -1,24 +1,39 @@
 "use client";
 
-export function LogoutButton() {
-  const handleLogout =
-    async () => {
-      await fetch(
-        "/api/auth/logout",
-        {
-          method: "POST",
-        }
-      );
+import {
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 
-      window.location.href =
-        "/login";
-    };
+import LogoutIcon from "@mui/icons-material/Logout";
+
+export function LogoutButton() {
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
+    window.location.href = "/login";
+  };
 
   return (
-    <button
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
+    <Tooltip title="Logout">
+      <IconButton
+        onClick={handleLogout}
+        aria-label="Logout"
+        size="small"
+        sx={{
+          ml: 0.5,
+          color: "text.secondary",
+
+          "&:hover": {
+            color: "error.main",
+            bgcolor: "action.hover",
+          },
+        }}
+      >
+        <LogoutIcon fontSize="small" />
+      </IconButton>
+    </Tooltip>
   );
 }

@@ -1,30 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Alert,
   Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
 } from "@mui/material";
 
 import { FormCard } from "@/components/ui/form-card";
 
+interface AcademicYearOption {
+  id: string;
+  name: string;
+}
+
+interface AcademicYearsResponse {
+  success: boolean;
+  message?: string;
+  academicYears?: AcademicYearOption[];
+}
+
 export function CreateClassForm() {
-  const [name, setName] =
+  const [name, setName] = useState("");
+
+  const [academicYearId, setAcademicYearId] =
     useState("");
 
-  const [
-    academicYear,
-    setAcademicYear,
-  ] = useState("");
+  const [academicYears, setAcademicYears] =
+    useState<AcademicYearOption[]>([]);
+
+  const [loadingYears, setLoadingYears] =
+    useState(true);
 
   const [loading, setLoading] =
     useState(false);
 
   const [error, setError] =
     useState("");
+
+  useEffect(() => {
+    async function loadAcademicYears() {
+      try {
+        setLoadingYears(true);
+        setError("");
+
+        const response = await fetch(
+          "/api/academic-years"
+        );
+
+        const data: AcademicYearsResponse =
+          await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.message ??
+              "Failed to load academic years"
+          );
+        }
+
+        setAcademicYears(
+          data.academicYears ?? []
+        );
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load academic years"
+        );
+      } finally {
+        setLoadingYears(false);
+      }
+    }
+
+    loadAcademicYears();
+  }, []);
 
   async function handleSubmit(
     e: React.FormEvent
@@ -35,21 +90,34 @@ export function CreateClassForm() {
       setLoading(true);
       setError("");
 
-      const response =
-        await fetch(
-          "/api/classes",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              academicYear,
-            }),
-          }
+      const selectedAcademicYear =
+        academicYears.find(
+          (academicYear) =>
+            academicYear.id === academicYearId
         );
+
+      if (!selectedAcademicYear) {
+        throw new Error(
+          "Please select an academic year."
+        );
+      }
+
+      const response = await fetch(
+        "/api/classes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            academicYear:
+              selectedAcademicYear.name,
+            academicYearId,
+          }),
+        }
+      );
 
       const data =
         await response.json();
@@ -76,9 +144,7 @@ export function CreateClassForm() {
   return (
     <FormCard>
       <form
-        onSubmit={
-          handleSubmit
-        }
+        onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
           {error && (
@@ -99,17 +165,40 @@ export function CreateClassForm() {
             required
           />
 
-          <TextField
-            label="Academic Year"
+          <FormControl
             fullWidth
-            value={academicYear}
-            onChange={(e) =>
-              setAcademicYear(
-                e.target.value
-              )
-            }
             required
-          />
+            disabled={
+              loadingYears ||
+              loading
+            }
+          >
+            <InputLabel id="academic-year-label">
+              Academic Year
+            </InputLabel>
+
+            <Select
+              labelId="academic-year-label"
+              value={academicYearId}
+              label="Academic Year"
+              onChange={(e) =>
+                setAcademicYearId(
+                  e.target.value
+                )
+              }
+            >
+              {academicYears.map(
+                (academicYear) => (
+                  <MenuItem
+                    key={academicYear.id}
+                    value={academicYear.id}
+                  >
+                    {academicYear.name}
+                  </MenuItem>
+                )
+              )}
+            </Select>
+          </FormControl>
 
           <Stack
             direction="row"
@@ -125,7 +214,11 @@ export function CreateClassForm() {
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={
+                loading ||
+                loadingYears ||
+                academicYears.length === 0
+              }
             >
               {loading
                 ? "Creating..."

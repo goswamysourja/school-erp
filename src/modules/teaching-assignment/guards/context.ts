@@ -45,9 +45,7 @@ export async function validateContext(
     );
   }
 
-  if (
-    !teacher.isActive
-  ) {
+  if (!teacher.isActive) {
     throw new Error(
       "Teacher is inactive.",
     );
@@ -67,6 +65,17 @@ export async function validateContext(
       where: {
         id: input.sectionId,
       },
+
+      include: {
+        class: {
+          select: {
+            id: true,
+            tenantId: true,
+            isActive: true,
+            academicYearId: true,
+          },
+        },
+      },
     });
 
   if (!section) {
@@ -75,9 +84,7 @@ export async function validateContext(
     );
   }
 
-  if (
-    !section.isActive
-  ) {
+  if (!section.isActive) {
     throw new Error(
       "Section is inactive.",
     );
@@ -89,6 +96,33 @@ export async function validateContext(
   ) {
     throw new Error(
       "Section belongs to another tenant.",
+    );
+  }
+
+  if (!section.class) {
+    throw new Error(
+      "Class not found.",
+    );
+  }
+
+  if (!section.class.isActive) {
+    throw new Error(
+      "Class is inactive.",
+    );
+  }
+
+  if (
+    section.class.tenantId !==
+    input.tenantId
+  ) {
+    throw new Error(
+      "Class belongs to another tenant.",
+    );
+  }
+
+  if (!section.class.academicYearId) {
+    throw new Error(
+      "Class is not linked to an academic year.",
     );
   }
 
@@ -105,9 +139,7 @@ export async function validateContext(
     );
   }
 
-  if (
-    !subject.isActive
-  ) {
+  if (!subject.isActive) {
     throw new Error(
       "Subject is inactive.",
     );

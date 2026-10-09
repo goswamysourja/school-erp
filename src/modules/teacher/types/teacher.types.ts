@@ -7,8 +7,8 @@ export type TeacherWithRelations =
       user: true;
     };
   }>;
-  
- export interface TeacherResponse {
+
+export interface TeacherResponse {
   id: string;
 
   employeeId: string;
@@ -22,8 +22,6 @@ export type TeacherWithRelations =
   gender: string;
 
   dateOfBirth: Date | null;
-
-  phone: string | null;
 
   address: string | null;
 

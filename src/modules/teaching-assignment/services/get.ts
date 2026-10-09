@@ -31,7 +31,11 @@ export async function getTeachingAssignment(
 
         section: {
           include: {
-            class: true,
+            class: {
+              include: {
+                academicYearRecord: true,
+              },
+            },
           },
         },
 
