@@ -1,19 +1,26 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Alert,
+  Box,
   Button,
+  Card,
+  CardContent,
+  Divider,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
-import { FormCard } from "@/components/ui/form-card";
+import SaveIcon from "@mui/icons-material/Save";
 
 interface AcademicYearOption {
   id: string;
@@ -28,11 +35,8 @@ interface AcademicYearsResponse {
 
 interface Props {
   id: string;
-
   initialName: string;
-
   initialAcademicYear: string;
-
   initialAcademicYearId?: string;
 }
 
@@ -42,29 +46,19 @@ export function EditClassForm({
   initialAcademicYear,
   initialAcademicYearId,
 }: Props) {
-  const [name, setName] =
-    useState(initialName);
+  const router = useRouter();
 
-  const [
-    academicYearId,
-    setAcademicYearId,
-  ] = useState(
-    initialAcademicYearId ?? ""
+  const [name, setName] = useState(initialName);
+  const [academicYearId, setAcademicYearId] = useState(
+    initialAcademicYearId ?? "",
   );
+  const [academicYears, setAcademicYears] = useState<
+    AcademicYearOption[]
+  >([]);
 
-  const [
-    academicYears,
-    setAcademicYears,
-  ] = useState<AcademicYearOption[]>([]);
-
-  const [loadingYears, setLoadingYears] =
-    useState(true);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [loadingYears, setLoadingYears] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadAcademicYears() {
@@ -72,48 +66,36 @@ export function EditClassForm({
         setLoadingYears(true);
         setError("");
 
-        const response =
-          await fetch(
-            "/api/academic-years"
-          );
+        const response = await fetch("/api/academic-years");
 
         const data: AcademicYearsResponse =
           await response.json();
 
-        if (
-          !response.ok ||
-          !data.success
-        ) {
+        if (!response.ok || !data.success) {
           throw new Error(
-            data.message ??
-              "Failed to load academic years"
+            data.message ?? "Failed to load academic years.",
           );
         }
 
-        const years =
-          data.academicYears ?? [];
+        const years = data.academicYears ?? [];
 
         setAcademicYears(years);
 
         if (!initialAcademicYearId) {
-          const matchingYear =
-            years.find(
-              (academicYear) =>
-                academicYear.name ===
-                initialAcademicYear
-            );
+          const matchingYear = years.find(
+            (academicYear) =>
+              academicYear.name === initialAcademicYear,
+          );
 
           if (matchingYear) {
-            setAcademicYearId(
-              matchingYear.id
-            );
+            setAcademicYearId(matchingYear.id);
           }
         }
       } catch (error) {
         setError(
           error instanceof Error
             ? error.message
-            : "Failed to load academic years"
+            : "Failed to load academic years.",
         );
       } finally {
         setLoadingYears(false);
@@ -121,69 +103,66 @@ export function EditClassForm({
     }
 
     loadAcademicYears();
-  }, [
-    initialAcademicYear,
-    initialAcademicYearId,
-  ]);
+  }, [initialAcademicYear, initialAcademicYearId]);
 
   async function handleSubmit(
-    e: React.FormEvent
+    event: React.FormEvent<HTMLFormElement>,
   ) {
-    e.preventDefault();
+    event.preventDefault();
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setError("Please enter a class name.");
+      return;
+    }
+
+    const selectedAcademicYear = academicYears.find(
+      (academicYear) => academicYear.id === academicYearId,
+    );
+
+    if (!selectedAcademicYear) {
+      setError("Please select an academic year.");
+      return;
+    }
 
     try {
       setLoading(true);
       setError("");
 
-      const selectedAcademicYear =
-        academicYears.find(
-          (academicYear) =>
-            academicYear.id ===
-            academicYearId
-        );
+      const response = await fetch(`/api/classes/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          academicYear: selectedAcademicYear.name,
+          academicYearId: selectedAcademicYear.id,
+        }),
+      });
 
-      if (!selectedAcademicYear) {
+      const data = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+      } | null;
+
+      if (!response.ok || data?.success !== true) {
         throw new Error(
-          "Please select an academic year."
+          data?.message ??
+            data?.error ??
+            "Failed to update class.",
         );
       }
 
-      const response =
-        await fetch(
-          `/api/classes/${id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              academicYear:
-                selectedAcademicYear.name,
-              academicYearId:
-                selectedAcademicYear.id,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!data.success) {
-        throw new Error(
-          data.message ??
-            "Failed to update class"
-        );
-      }
-
-      window.location.href =
-        "/dashboard/classes";
+      router.push("/dashboard/classes");
+      router.refresh();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update class"
+          : "Failed to update class.",
       );
     } finally {
       setLoading(false);
@@ -191,99 +170,195 @@ export function EditClassForm({
   }
 
   return (
-    <FormCard>
-      <form
-        onSubmit={
-          handleSubmit
-        }
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: 700,
+      }}
+    >
+      <Card
+        elevation={0}
+        sx={{
+          width: "100%",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 3,
+          overflow: "hidden",
+          bgcolor: "background.paper",
+        }}
       >
-        <Stack spacing={3}>
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
-
-          <TextField
-            label="Class Name"
-            fullWidth
-            value={name}
-            onChange={(e) =>
-              setName(
-                e.target.value
-              )
-            }
-            required
-          />
-
-          <FormControl
-            fullWidth
-            required
-            disabled={
-              loadingYears ||
-              loading
-            }
+        <CardContent
+          sx={{
+            p: {
+              xs: 2.5,
+              sm: 3.5,
+            },
+            "&:last-child": {
+              pb: {
+                xs: 2.5,
+                sm: 3.5,
+              },
+            },
+          }}
+        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
           >
-            <InputLabel id="academic-year-label">
-              Academic Year
-            </InputLabel>
+            <Stack spacing={3}>
+              {/* Header */}
+              <Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    letterSpacing: "-0.2px",
+                  }}
+                >
+                  Update Class
+                </Typography>
 
-            <Select
-              labelId="academic-year-label"
-              value={academicYearId}
-              label="Academic Year"
-              onChange={(e) =>
-                setAcademicYearId(
-                  e.target.value
-                )
-              }
-            >
-              {academicYears.map(
-                (academicYear) => (
-                  <MenuItem
-                    key={
-                      academicYear.id
-                    }
-                    value={
-                      academicYear.id
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    mt: 0.5,
+                  }}
+                >
+                  Modify the name or academic period for this
+                  class.
+                </Typography>
+              </Box>
+
+              {/* Error */}
+              {error && (
+                <Alert
+                  severity="error"
+                  onClose={() => setError("")}
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {error}
+                </Alert>
+              )}
+
+              {/* Fields */}
+              <Stack spacing={2.5}>
+                <TextField
+                  id="class-name"
+                  label="Class Name"
+                  fullWidth
+                  required
+                  value={name}
+                  onChange={(event) =>
+                    setName(event.target.value)
+                  }
+                  disabled={loading}
+                  autoComplete="off"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+
+                <FormControl
+                  fullWidth
+                  required
+                  disabled={loadingYears || loading}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                >
+                  <InputLabel id="academic-year-label">
+                    Academic Year
+                  </InputLabel>
+
+                  <Select
+                    labelId="academic-year-label"
+                    id="academic-year"
+                    value={academicYearId}
+                    label="Academic Year"
+                    onChange={(event) =>
+                      setAcademicYearId(event.target.value)
                     }
                   >
-                    {academicYear.name}
-                  </MenuItem>
-                )
-              )}
-            </Select>
-          </FormControl>
+                    {academicYears.map((academicYear) => (
+                      <MenuItem
+                        key={academicYear.id}
+                        value={academicYear.id}
+                      >
+                        {academicYear.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
 
-          <Stack
-            direction="row"
-            spacing={2}
-          >
-            <Button
-              variant="outlined"
-              href="/dashboard/classes"
-            >
-              Cancel
-            </Button>
+              <Divider />
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={
-                loading ||
-                loadingYears ||
-                academicYears.length ===
-                  0 ||
-                !academicYearId
-              }
-            >
-              {loading
-                ? "Saving..."
-                : "Save Changes"}
-            </Button>
-          </Stack>
-        </Stack>
-      </form>
-    </FormCard>
+              {/* Actions */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: {
+                    xs: "column-reverse",
+                    sm: "row",
+                  },
+                  gap: 1.5,
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button
+                  href="/dashboard/classes"
+                  variant="outlined"
+                  color="inherit"
+                  disabled={loading}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={
+                    loading ||
+                    loadingYears ||
+                    academicYears.length === 0 ||
+                    !name.trim() ||
+                    !academicYearId
+                  }
+                  startIcon={<SaveIcon />}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

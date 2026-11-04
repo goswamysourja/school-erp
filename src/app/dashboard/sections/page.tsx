@@ -1,9 +1,8 @@
+
 import { Role } from "@prisma/client";
 
 import { requireRole } from "@/modules/auth/guards/require-role.guard";
-
 import { getSections } from "@/modules/sections/services/get-sections.service";
-
 import { PageHeader } from "@/components/ui/page-header";
 
 import {
@@ -22,132 +21,205 @@ interface Props {
 export default async function SectionsPage({
   searchParams,
 }: Props) {
-  const currentUser =
-    await requireRole([
-      Role.ADMIN,
-    ]);
+  const currentUser = await requireRole([Role.ADMIN]);
 
   if (!currentUser.tenantId) {
-    throw new Error(
-      "Tenant assignment missing",
-    );
+    throw new Error("Tenant assignment missing");
   }
 
-  const {
+  const { classId } = await searchParams;
+
+  const sections = await getSections({
+    tenantId: currentUser.tenantId,
     classId,
-  } = await searchParams;
+  });
 
-  const sections =
-    await getSections({
-      tenantId:
-        currentUser.tenantId,
-      classId,
-    });
-
-  const selectedClass =
-    sections[0]?.class;
+  const selectedClass = sections[0]?.class;
 
   return (
-    <>
+    <Stack spacing={3.5} sx={{ width: "100%", pb: 4 }}>
+      {/* Page Header */}
       <PageHeader
         title={
           classId && selectedClass
-            ? `Sections — Class ${selectedClass.name}`
+            ? `Sections — ${selectedClass.name}`
             : "Sections"
         }
         subtitle={
           classId && selectedClass
-            ? `Manage sections for Class ${selectedClass.name}`
-            : "Manage class sections"
+            ? `Manage sections for ${selectedClass.name}`
+            : classId
+              ? "Manage sections for the selected class"
+              : "Manage class sections"
         }
       />
 
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{ mb: 3 }}
+      {/* Page Actions */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 1.5,
+          alignItems: { xs: "stretch", sm: "center" },
+        }}
       >
         <Button
-          variant="contained"
           href={
             classId
-              ? `/dashboard/sections/create?classId=${classId}`
+              ? `/dashboard/sections/create?classId=${encodeURIComponent(classId)}`
               : "/dashboard/sections/create"
           }
+          variant="contained"
+          sx={{
+            minHeight: 42,
+            px: 2.5,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: "none",
+            "&:hover": {
+              boxShadow: "none",
+            },
+          }}
         >
           Create Section
         </Button>
 
         {classId && (
           <Button
-            variant="outlined"
             href="/dashboard/classes"
+            variant="outlined"
+            color="inherit"
+            sx={{
+              minHeight: 42,
+              px: 2.5,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 600,
+            }}
           >
             Back to Classes
           </Button>
         )}
-      </Stack>
+      </Box>
 
-      <Stack spacing={2}>
-        {sections.length === 0 ? (
-          <Typography color="text.secondary">
-            {classId
-              ? "No sections found for this class."
-              : "No sections found."}
+      {/* Sections List */}
+      {sections.length === 0 ? (
+        <Box
+          sx={{
+            p: { xs: 3, sm: 5 },
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 3,
+            textAlign: "center",
+            bgcolor: "background.paper",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 0.75 }}
+          >
+            No sections found
           </Typography>
-        ) : (
-          sections.map((section) => (
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            {classId
+              ? "No sections have been created for this class yet."
+              : "There are no sections available yet."}
+          </Typography>
+        </Box>
+      ) : (
+        <Stack spacing={2}>
+          {sections.map((section) => (
             <Box
               key={section.id}
               sx={{
-                p: 2,
-                border: "1px solid",
+                p: { xs: 2, sm: 2.5 },
+                border: 1,
                 borderColor: "divider",
-                borderRadius: 1,
+                borderRadius: 3,
+                bgcolor: "background.paper",
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: 2,
+                justifyContent: "space-between",
+                alignItems: { xs: "stretch", sm: "center" },
+                transition: "border-color 0.2s",
+                "&:hover": {
+                  borderColor: "primary.light",
+                },
               }}
             >
-              <Typography variant="h6">
-                Section {section.name}
-              </Typography>
+              {/* Section Information */}
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 700 }}
+                >
+                  Section {section.name}
+                </Typography>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
-                Class: {section.class.name}
-              </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  Class: {section.class.name}
+                </Typography>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
-                Academic Year:{" "}
-                {section.class.academicYearRecord?.name ??
-                  section.class.academicYear}
-              </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  Academic Year:{" "}
+                  {section.class.academicYearRecord?.name ??
+                    section.class.academicYear ??
+                    "N/A"}
+                </Typography>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
-                Status:{" "}
-                {section.isActive
-                  ? "Active"
-                  : "Inactive"}
-              </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mt: 0.5,
+                    fontWeight: 600,
+                    color: section.isActive
+                      ? "success.main"
+                      : "text.secondary",
+                  }}
+                >
+                  {section.isActive ? "Active" : "Inactive"}
+                </Typography>
+              </Box>
 
-              <Button
-                href={`/dashboard/sections/${section.id}/edit`}
-                variant="outlined"
-                size="small"
-                sx={{ mt: 2 }}
+              {/* Actions */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: { xs: "flex-start", sm: "flex-end" },
+                }}
               >
-                Edit
-              </Button>
+                <Button
+                  href={`/dashboard/sections/${section.id}/edit`}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    minHeight: 36,
+                    px: 2,
+                    borderRadius: 1.5,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Edit Section
+                </Button>
+              </Box>
             </Box>
-          ))
-        )}
-      </Stack>
-    </>
+          ))}
+        </Stack>
+      )}
+    </Stack>
   );
 }

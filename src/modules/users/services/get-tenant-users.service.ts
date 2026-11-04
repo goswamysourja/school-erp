@@ -9,28 +9,33 @@ interface GetTenantUsersInput {
 export async function getTenantUsers({
   tenantId,
 }: GetTenantUsersInput) {
-  const users =
-    await prisma.user.findMany({
-      where: {
-        tenantId,
-        role: Role.TEACHER,
+  const users = await prisma.user.findMany({
+    where: {
+      tenantId,
+      role: {
+        in: [
+          Role.STAFF,
+          Role.TEACHER, // Temporary support for legacy accounts
+        ],
       },
-      include: {
-        tenant: true,
-        teacher: {
-          select: {
-            id: true,
-          },
+    },
+
+    include: {
+      tenant: true,
+      teacher: {
+        select: {
+          id: true,
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return users.map((user) => ({
     ...user,
-    hasTeacherProfile:
-      user.teacher !== null,
+    hasTeacherProfile: user.teacher !== null,
   }));
 }

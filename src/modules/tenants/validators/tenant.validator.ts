@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 export const tenantStatusSchema = z.enum([
@@ -15,16 +16,6 @@ export const createTenantSchema = z.object({
     .trim()
     .min(2, "Tenant name must be at least 2 characters.")
     .max(100, "Tenant name must not exceed 100 characters."),
-
-  slug: z
-    .string()
-    .trim()
-    .min(2, "Tenant slug must be at least 2 characters.")
-    .max(100, "Tenant slug must not exceed 100 characters.")
-    .regex(
-      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug must contain only lowercase letters, numbers, and hyphens.",
-    ),
 
   adminName: z
     .string()

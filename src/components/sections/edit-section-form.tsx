@@ -1,74 +1,78 @@
+
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Alert,
+  Box,
   Button,
+  Card,
+  CardContent,
+  Divider,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
-import { FormCard } from "@/components/ui/form-card";
+import SaveIcon from "@mui/icons-material/Save";
 
 interface Props {
   id: string;
   initialName: string;
 }
 
-export function EditSectionForm({
-  id,
-  initialName,
-}: Props) {
-  const [name, setName] =
-    useState(initialName);
+export function EditSectionForm({ id, initialName }: Props) {
+  const router = useRouter();
 
-  const [loading, setLoading] =
-    useState(false);
+  const [name, setName] = useState(initialName);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  async function handleSubmit(
-    e: React.FormEvent
-  ) {
-    e.preventDefault();
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setError("Please enter a section name.");
+      return;
+    }
 
     try {
       setLoading(true);
       setError("");
 
-      const response =
-        await fetch(
-          `/api/sections/${id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              name,
-            }),
-          }
-        );
+      const response = await fetch(`/api/sections/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+        }),
+      });
 
-      const data =
-        await response.json();
+      const data = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+      } | null;
 
-      if (!data.success) {
+      if (!response.ok || data?.success !== true) {
         throw new Error(
-          data.message
+          data?.message ?? data?.error ?? "Failed to update section.",
         );
       }
 
-      window.location.href =
-        "/dashboard/sections";
+      router.push("/dashboard/sections");
+      router.refresh();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update section"
+          : "Failed to update section.",
       );
     } finally {
       setLoading(false);
@@ -76,52 +80,131 @@ export function EditSectionForm({
   }
 
   return (
-    <FormCard>
-      <form
-        onSubmit={handleSubmit}
+    <Box sx={{ width: "100%", maxWidth: 700 }}>
+      <Card
+        elevation={0}
+        sx={{
+          width: "100%",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 3,
+          overflow: "hidden",
+          bgcolor: "background.paper",
+        }}
       >
-        <Stack spacing={3}>
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
+        <CardContent
+          sx={{
+            p: { xs: 2.5, sm: 3.5 },
+            "&:last-child": {
+              pb: { xs: 2.5, sm: 3.5 },
+            },
+          }}
+        >
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Stack spacing={3}>
+              {/* Header */}
+              <Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    letterSpacing: "-0.2px",
+                  }}
+                >
+                  Update Section
+                </Typography>
 
-          <TextField
-            label="Section Name"
-            value={name}
-            onChange={(e) =>
-              setName(
-                e.target.value
-              )
-            }
-            fullWidth
-            required
-          />
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  Modify the identifier for this specific section.
+                </Typography>
+              </Box>
 
-          <Stack
-            direction="row"
-            spacing={2}
-          >
-            <Button
-              variant="outlined"
-              href="/dashboard/sections"
-            >
-              Cancel
-            </Button>
+              {/* Error */}
+              {error && (
+                <Alert
+                  severity="error"
+                  onClose={() => setError("")}
+                  sx={{ borderRadius: 2 }}
+                >
+                  {error}
+                </Alert>
+              )}
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-            >
-              {loading
-                ? "Saving..."
-                : "Save Changes"}
-            </Button>
-          </Stack>
-        </Stack>
-      </form>
-    </FormCard>
+              {/* Form Field */}
+              <TextField
+                id="section-name"
+                label="Section Name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                fullWidth
+                required
+                disabled={loading}
+                autoComplete="off"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
+              />
+
+              <Divider />
+
+              {/* Actions */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: {
+                    xs: "column-reverse",
+                    sm: "row",
+                  },
+                  gap: 1.5,
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button
+                  href="/dashboard/sections"
+                  variant="outlined"
+                  color="inherit"
+                  disabled={loading}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading || !name.trim()}
+                  startIcon={<SaveIcon />}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

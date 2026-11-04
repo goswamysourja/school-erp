@@ -12,10 +12,14 @@ export async function listEligibleTeacherUsers({
   return prisma.user.findMany({
     where: {
       tenantId,
-
-      role: Role.TEACHER,
-
       isActive: true,
+
+      role: {
+        in: [
+          Role.STAFF,
+          Role.TEACHER, // Temporary legacy support
+        ],
+      },
 
       teacher: {
         is: null,
@@ -30,6 +34,7 @@ export async function listEligibleTeacherUsers({
       id: true,
       name: true,
       phone: true,
+      designation: true,
     },
   });
 }

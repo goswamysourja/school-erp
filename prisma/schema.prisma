@@ -16,6 +16,12 @@ enum TenantStatus {
   REJECTED
 }
 
+enum StaffDesignation {
+  TEACHER
+  LIBRARIAN
+  ACCOUNTANT
+}
+
 model Tenant {
   id          String       @id @default(cuid())
   name        String
@@ -48,27 +54,31 @@ model Tenant {
   libraryBookCopies       LibraryBookCopy[]
   libraryLoans            LibraryLoan[]
   librarySettings         LibrarySettings?
+  libraryPayments         LibraryPayment[]
 
   @@map("tenants")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String   @unique
-  role      Role
-  tenantId  String?
-  createdAt DateTime @default(now())
-  isActive  Boolean  @default(true)
-  updatedAt DateTime @default(now()) @updatedAt
+  id          String            @id @default(cuid())
+  name        String
+  phone       String            @unique
+  role        Role
+  designation StaffDesignation?
+  tenantId    String?
+  createdAt   DateTime          @default(now())
+  isActive    Boolean           @default(true)
+  updatedAt   DateTime          @default(now()) @updatedAt
 
   otps               Otp[]
   teacher            Teacher?
   tenant             Tenant?  @relation("TenantUsers", fields: [tenantId], references: [id])
   administeredTenant Tenant?  @relation("TenantAdministrator")
 
-  libraryLoansIssued   LibraryLoan[] @relation("LibraryLoanIssuedBy")
-  libraryLoansReturned LibraryLoan[] @relation("LibraryLoanReturnedBy")
+  libraryLoansIssued      LibraryLoan[]            @relation("LibraryLoanIssuedBy")
+  libraryLoansReturned    LibraryLoan[]            @relation("LibraryLoanReturnedBy")
+  libraryPaymentsReceived LibraryPayment[]         @relation("LibraryPaymentReceivedBy")
+  libraryStaffAssignments LibraryStaffAssignment[]
 
   @@map("users")
 }
@@ -194,7 +204,6 @@ model Teacher {
 
   teachingAssignments     TeachingAssignment[]
   classTeacherAssignments ClassTeacherAssignment[]
-  libraryStaffAssignments LibraryStaffAssignment[]
 
   @@unique([tenantId, employeeId])
   @@index([tenantId])
@@ -344,17 +353,17 @@ model Certificate {
 model LibraryStaffAssignment {
   id        String   @id @default(cuid())
   tenantId  String
-  teacherId String
+  userId    String
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, teacherId])
+  @@unique([tenantId, userId])
   @@index([tenantId, isActive])
-  @@index([teacherId])
+  @@index([userId])
   @@map("library_staff_assignments")
 }
 
@@ -467,11 +476,12 @@ model LibraryLoan {
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  bookCopy       LibraryBookCopy @relation(fields: [bookCopyId], references: [id])
-  student        Student         @relation(fields: [studentId], references: [id])
-  issuedByUser   User            @relation("LibraryLoanIssuedBy", fields: [issuedByUserId], references: [id])
-  returnedByUser User?           @relation("LibraryLoanReturnedBy", fields: [returnedByUserId], references: [id])
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bookCopy       LibraryBookCopy  @relation(fields: [bookCopyId], references: [id])
+  student        Student          @relation(fields: [studentId], references: [id])
+  issuedByUser   User             @relation("LibraryLoanIssuedBy", fields: [issuedByUserId], references: [id])
+  returnedByUser User?            @relation("LibraryLoanReturnedBy", fields: [returnedByUserId], references: [id])
+  payments       LibraryPayment[]
 
   @@index([tenantId, status])
   @@index([tenantId, dueAt])
@@ -502,6 +512,7 @@ enum Role {
   SUPER_ADMIN
   ADMIN
   TEACHER
+  STAFF
 }
 
 enum Gender {
@@ -536,4 +547,40 @@ enum LibraryLoanStatus {
   ACTIVE
   RETURNED
   LOST
+}
+
+enum LibraryPaymentType {
+  FINE
+  REPLACEMENT
+}
+
+enum LibraryPaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+model LibraryPayment {
+  id               String               @id @default(cuid())
+  tenantId         String
+  loanId           String
+  receivedByUserId String
+  type             LibraryPaymentType
+  amount           Decimal              @db.Decimal(10, 2)
+  method           LibraryPaymentMethod
+  reference        String?
+  notes            String?
+  receivedAt       DateTime             @default(now())
+  createdAt        DateTime             @default(now())
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  loan       LibraryLoan @relation(fields: [loanId], references: [id], onDelete: Restrict)
+  receivedBy User        @relation("LibraryPaymentReceivedBy", fields: [receivedByUserId], references: [id])
+
+  @@index([tenantId, receivedAt])
+  @@index([loanId, type])
+  @@index([receivedByUserId])
+  @@map("library_payments")
 }

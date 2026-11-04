@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+import { e164PhoneSchema } from "@/lib/validators/phone.validator";
+
 export const requestOtpSchema = z.object({
-  email: z.email(),
+  phone: e164PhoneSchema,
 });
 
-export type RequestOtpInput =
-  z.infer<typeof requestOtpSchema>;
+export type RequestOtpInput = z.infer<
+  typeof requestOtpSchema
+>;

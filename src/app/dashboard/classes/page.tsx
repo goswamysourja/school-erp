@@ -1,68 +1,100 @@
+
 import { Role } from "@prisma/client";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+import { Box, Button, Stack, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
-import { getClasses }
-  from "@/modules/classes/services/get-classes.service";
-
-import { ClassCard }
-  from "@/components/classes/class-card";
-
-import { PageHeader }
-  from "@/components/ui/page-header";
-
-import {
-  Button,
-  Stack,
-} from "@mui/material";
-
-import Link from "next/link";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
+import { getClasses } from "@/modules/classes/services/get-classes.service";
+import { ClassesListClient } from "@/components/classes/classes-list-client";
 
 export default async function ClassesPage() {
-  const currentUser =
-    await requireRole([
-      Role.ADMIN,
-    ]);
+  const currentUser = await requireRole([Role.ADMIN]);
 
   if (!currentUser.tenantId) {
-    throw new Error(
-      "Tenant assignment missing"
-    );
+    throw new Error("Tenant assignment missing");
   }
 
-  const classes =
-    await getClasses({
-      tenantId:
-        currentUser.tenantId,
-    });
+  const classes = await getClasses({
+    tenantId: currentUser.tenantId,
+  });
 
   return (
-    <>
-      <PageHeader
-        title="Classes"
-        subtitle="Manage academic classes"
-      />
+    <Stack
+      spacing={3.5}
+      sx={{
+        width: "100%",
+        pb: 4,
+      }}
+    >
+      {/* Page Header */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: {
+            xs: "column",
+            sm: "row",
+          },
+          gap: 2,
+          justifyContent: "space-between",
+          alignItems: {
+            xs: "stretch",
+            sm: "center",
+          },
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              fontSize: {
+                xs: "1.8rem",
+                sm: "2.125rem",
+              },
+            }}
+          >
+            Classes
+          </Typography>
 
-      <Link href="/dashboard/classes/create">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mt: 0.75,
+            }}
+          >
+            Manage academic classes and sections for your institution.
+          </Typography>
+        </Box>
+
         <Button
+          href="/dashboard/classes/create"
           variant="contained"
-          sx={{ mb: 3 }}
+          startIcon={<AddIcon />}
+          sx={{
+            alignSelf: {
+              xs: "flex-start",
+              sm: "center",
+            },
+            minHeight: 44,
+            px: 2.5,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: "none",
+            "&:hover": {
+              boxShadow: "none",
+            },
+          }}
         >
           Create Class
         </Button>
-      </Link>
+      </Box>
 
-      <Stack spacing={2}>
-        {classes.map(
-          (classItem) => (
-            <ClassCard
-              key={classItem.id}
-              classItem={classItem}
-            />
-          )
-        )}
-      </Stack>
-    </>
+      {/* Classes */}
+      <ClassesListClient initialClasses={classes} />
+    </Stack>
   );
 }

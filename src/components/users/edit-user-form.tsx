@@ -1,17 +1,21 @@
 "use client";
 
-import {
-  useState,
-} from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Alert,
+  Box,
   Button,
+  Card,
+  CardContent,
+  Divider,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
-import { FormCard } from "@/components/ui/form-card";
+import SaveIcon from "@mui/icons-material/Save";
 
 interface Props {
   id: string;
@@ -24,59 +28,65 @@ export function EditUserForm({
   initialName,
   initialPhone = "",
 }: Props) {
-  const [name, setName] =
-    useState(initialName);
+  const router = useRouter();
 
-  const [phone, setPhone] =
-    useState(initialPhone);
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  async function handleSubmit(
-    e: React.FormEvent,
-  ) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    if (!trimmedName) {
+      setError("Please enter the teacher's name.");
+      return;
+    }
+
+    if (!trimmedPhone) {
+      setError("Please enter the teacher's phone number.");
+      return;
+    }
 
     try {
       setLoading(true);
       setError("");
 
-      const response =
-        await fetch(
-          `/api/users/${id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              phone,
-            }),
-          },
-        );
+      const response = await fetch(`/api/users/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          phone: trimmedPhone,
+        }),
+      });
 
-      const data =
-        await response.json();
+      const data = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        message?: string;
+        error?: string;
+      } | null;
 
-      if (!data.success) {
+      if (!response.ok || data?.success !== true) {
         throw new Error(
-          data.message,
+          data?.message ??
+            data?.error ??
+            "Failed to update user details.",
         );
       }
 
-      window.location.href =
-        "/dashboard/users";
+      router.push("/dashboard/users");
+      router.refresh();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update user",
+          : "An unexpected error occurred while updating the user.",
       );
     } finally {
       setLoading(false);
@@ -84,64 +94,184 @@ export function EditUserForm({
   }
 
   return (
-    <FormCard>
-      <form
-        onSubmit={handleSubmit}
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: 760,
+      }}
+    >
+      <Card
+        elevation={0}
+        sx={{
+          width: "100%",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 3,
+          overflow: "hidden",
+          bgcolor: "background.paper",
+        }}
       >
-        <Stack spacing={3}>
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
-
-          <TextField
-            label="Full Name"
-            fullWidth
-            value={name}
-            onChange={(e) =>
-              setName(
-                e.target.value,
-              )
-            }
-          />
-
-          <TextField
-            label="Phone"
-            type="tel"
-            fullWidth
-            value={phone}
-            onChange={(e) =>
-              setPhone(
-                e.target.value,
-              )
-            }
-            helperText="This phone number is used for teacher login."
-          />
-
-          <Stack
-            direction="row"
-            spacing={2}
+        <CardContent
+          sx={{
+            p: {
+              xs: 2.5,
+              sm: 3.5,
+            },
+            "&:last-child": {
+              pb: {
+                xs: 2.5,
+                sm: 3.5,
+              },
+            },
+          }}
+        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
           >
-            <Button
-              variant="outlined"
-              href="/dashboard/users"
-            >
-              Cancel
-            </Button>
+            <Stack spacing={3}>
+              {/* Header */}
+              <Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    letterSpacing: "-0.2px",
+                  }}
+                >
+                  User Details
+                </Typography>
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-            >
-              {loading
-                ? "Saving..."
-                : "Save Changes"}
-            </Button>
-          </Stack>
-        </Stack>
-      </form>
-    </FormCard>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    mt: 0.5,
+                  }}
+                >
+                  Update the teacher&apos;s personal and contact
+                  information.
+                </Typography>
+              </Box>
+
+              {/* Error */}
+              {error && (
+                <Alert
+                  severity="error"
+                  onClose={() => setError("")}
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {error}
+                </Alert>
+              )}
+
+              {/* Fields */}
+              <Stack spacing={2.5}>
+                <TextField
+                  id="edit-user-name"
+                  label="Full Name"
+                  fullWidth
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
+                  autoComplete="name"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+
+                <TextField
+                  id="edit-user-phone"
+                  label="Phone Number"
+                  type="tel"
+                  fullWidth
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  disabled={loading}
+                  autoComplete="tel"
+                  helperText="This phone number is used for teacher login."
+                  slotProps={{
+                    htmlInput: {
+                      inputMode: "tel",
+                      maxLength: 15,
+                    },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    },
+                  }}
+                />
+              </Stack>
+
+              <Divider />
+
+              {/* Actions */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: {
+                    xs: "column-reverse",
+                    sm: "row",
+                  },
+                  gap: 1.5,
+                  justifyContent: {
+                    xs: "stretch",
+                    sm: "flex-end",
+                  },
+                }}
+              >
+                <Button
+                  href="/dashboard/users"
+                  variant="outlined"
+                  color="inherit"
+                  disabled={loading}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={
+                    loading ||
+                    !name.trim() ||
+                    !phone.trim()
+                  }
+                  startIcon={<SaveIcon />}
+                  sx={{
+                    minHeight: 44,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

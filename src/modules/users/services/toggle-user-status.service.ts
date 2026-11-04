@@ -11,28 +11,29 @@ export async function toggleUserStatus({
   id,
   tenantId,
 }: ToggleUserStatusInput) {
-  const user =
-    await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
 
   if (!user) {
-    throw new Error(
-      "User not found.",
-    );
+    throw new Error("Staff member not found.");
   }
 
-  if (user.role !== Role.TEACHER) {
+  const isStaff =
+    user.role === Role.STAFF ||
+    user.role === Role.TEACHER;
+
+  if (!isStaff) {
     throw new Error(
-      "Only teacher users can be managed through this endpoint.",
+      "Only staff members can be managed through this endpoint.",
     );
   }
 
   if (user.tenantId !== tenantId) {
     throw new Error(
-      "User belongs to another tenant.",
+      "Staff member belongs to another tenant.",
     );
   }
 
@@ -40,6 +41,7 @@ export async function toggleUserStatus({
     where: {
       id,
     },
+
     data: {
       isActive: !user.isActive,
     },

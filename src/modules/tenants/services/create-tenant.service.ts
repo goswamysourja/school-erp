@@ -4,28 +4,36 @@ import { prisma } from "@/lib/prisma/client";
 
 interface CreateTenantInput {
   name: string;
-  slug: string;
   adminName: string;
   adminPhone: string;
 }
 
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export async function createTenant({
   name,
-  slug,
   adminName,
   adminPhone,
 }: CreateTenantInput) {
-  const existingTenant =
-    await prisma.tenant.findUnique({
-      where: {
-        slug,
-      },
-    });
+  const baseSlug = generateSlug(name);
 
-  if (existingTenant) {
-    throw new Error(
-      "A tenant with this slug already exists.",
-    );
+  let slug = baseSlug;
+  let counter = 2;
+
+  while (
+    await prisma.tenant.findUnique({
+      where: { slug },
+      select: { id: true },
+    })
+  ) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
   }
 
   const existingUser =

@@ -1,45 +1,34 @@
 import { Role } from "@prisma/client";
+import { requireRole } from "@/modules/auth/guards/require-role.guard";
+import { getClasses } from "@/modules/classes/services/get-classes.service";
+import { CreateSectionForm } from "@/components/sections/create-section-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stack } from "@mui/material";
 
-import { requireRole }
-  from "@/modules/auth/guards/require-role.guard";
+interface Props {
+  searchParams: Promise<{ classId?: string }>;
+}
 
-import { getClasses }
-  from "@/modules/classes/services/get-classes.service";
-
-import { CreateSectionForm }
-  from "@/components/sections/create-section-form";
-
-import { PageHeader }
-  from "@/components/ui/page-header";
-
-export default async function CreateSectionPage() {
-  const currentUser =
-    await requireRole([
-      Role.ADMIN,
-    ]);
+export default async function CreateSectionPage({ searchParams }: Props) {
+  const currentUser = await requireRole([Role.ADMIN]);
 
   if (!currentUser.tenantId) {
-    throw new Error(
-      "Tenant assignment missing"
-    );
+    throw new Error("Tenant assignment missing");
   }
 
-  const classes =
-    await getClasses({
-      tenantId:
-        currentUser.tenantId,
-    });
+  const { classId } = await searchParams;
+
+  const classes = await getClasses({
+    tenantId: currentUser.tenantId,
+  });
 
   return (
-    <>
+    <Stack spacing={3.5} sx={{ pb: 4 }}>
       <PageHeader
         title="Create Section"
-        subtitle="Add a section to a class"
+        subtitle="Add a section to an existing class"
       />
-
-      <CreateSectionForm
-        classes={classes}
-      />
-    </>
+      <CreateSectionForm classes={classes} initialClassId={classId} />
+    </Stack>
   );
 }

@@ -11,18 +11,21 @@ export async function getUserById({
   id,
   tenantId,
 }: GetUserByIdInput) {
-  const user =
-    await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
 
   if (!user) {
     return null;
   }
 
-  if (user.role !== Role.TEACHER) {
+  const isStaff =
+    user.role === Role.STAFF ||
+    user.role === Role.TEACHER;
+
+  if (!isStaff) {
     return null;
   }
 

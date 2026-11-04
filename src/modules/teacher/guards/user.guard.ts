@@ -11,20 +11,15 @@ export async function requireEligibleTeacherUser(
   userId: string,
   tenantId: string,
 ) {
-  const user =
-    await requireUserExists(
-      userId,
-    );
+  const user = await requireUserExists(userId);
 
-  requireUserRole(
-    user,
-    Role.TEACHER,
-  );
+  requireUserRole(user, [
+    Role.STAFF,
+    Role.TEACHER, // Temporary support for legacy accounts
+  ]);
 
   if (!user.isActive) {
-    throw new Error(
-      "User is inactive.",
-    );
+    throw new Error("User is inactive.");
   }
 
   if (!user.tenantId) {
@@ -33,24 +28,20 @@ export async function requireEligibleTeacherUser(
     );
   }
 
-  if (
-    user.tenantId !==
-    tenantId
-  ) {
+  if (user.tenantId !== tenantId) {
     throw new Error(
       "Teacher user belongs to another tenant.",
     );
   }
 
-  const existingTeacher =
-    await prisma.teacher.findUnique({
-      where: {
-        userId,
-      },
-      select: {
-        id: true,
-      },
-    });
+  const existingTeacher = await prisma.teacher.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
 
   if (existingTeacher) {
     throw new Error(

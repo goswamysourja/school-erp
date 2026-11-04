@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   Box,
   List,
@@ -9,19 +10,59 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import SchoolIcon from "@mui/icons-material/School";
 
+import SchoolIcon from "@mui/icons-material/School";
 import { usePathname } from "next/navigation";
+
+import {
+  Role,
+  StaffDesignation,
+} from "@prisma/client";
+
 import { navigationItems } from "@/config/navigation.config";
-import { Role } from "@prisma/client";
 
 interface Props {
   onNavigate?: () => void;
-  role?: string;
+  role: Role;
+  designation: StaffDesignation | null;
+  hasLibraryAccess?: boolean;
 }
 
-export function DashboardSidebar({ onNavigate, role }: Props) {
+export function DashboardSidebar({
+  onNavigate,
+  role,
+  designation,
+  hasLibraryAccess = false,
+}: Props) {
   const pathname = usePathname();
+
+  const visibleItems = navigationItems.filter((item) => {
+    if (!item.roles.includes(role)) {
+      return false;
+    }
+
+    if (item.designations && role !== Role.ADMIN) {
+      const matchesDesignation =
+        designation !== null &&
+        item.designations.includes(designation);
+
+      // Support legacy TEACHER accounts during migration.
+      const isLegacyTeacher =
+        role === Role.TEACHER &&
+        (designation === null ||
+          designation === StaffDesignation.TEACHER);
+
+      if (!matchesDesignation && !isLegacyTeacher) {
+        return false;
+      }
+    }
+
+    if (item.requiresLibraryAccess) {
+      return role === Role.ADMIN || hasLibraryAccess;
+    }
+
+    return true;
+  });
 
   return (
     <Box
@@ -35,7 +76,6 @@ export function DashboardSidebar({ onNavigate, role }: Props) {
         flexDirection: "column",
       }}
     >
-      {/* Brand Header */}
       <Box
         sx={{
           px: 2.5,
@@ -60,6 +100,7 @@ export function DashboardSidebar({ onNavigate, role }: Props) {
         >
           <SchoolIcon fontSize="small" />
         </Box>
+
         <Box>
           <Typography
             variant="subtitle1"
@@ -71,17 +112,20 @@ export function DashboardSidebar({ onNavigate, role }: Props) {
           >
             School ERP
           </Typography>
+
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ fontWeight: 500, fontSize: "0.725rem" }}
+            sx={{
+              fontWeight: 500,
+              fontSize: "0.725rem",
+            }}
           >
             Management Platform
           </Typography>
         </Box>
       </Box>
 
-      {/* Navigation List */}
       <Box sx={{ px: 1.5, py: 1, flex: 1 }}>
         <Typography
           variant="caption"
@@ -100,63 +144,69 @@ export function DashboardSidebar({ onNavigate, role }: Props) {
         </Typography>
 
         <List disablePadding>
-          {navigationItems
-            .filter((item) => item.roles.includes(role as Role))
-            .map((item) => {
-              const Icon = item.icon;
-              const isSelected = pathname === item.href;
+          {visibleItems.map((item) => {
+            const Icon = item.icon;
 
-              return (
-                <ListItemButton
-                  key={item.href}
-                  component={Link}
-                  href={item.href}
-                  onClick={onNavigate}
-                  selected={isSelected}
-                  sx={{
-                    borderRadius: 2,
-                    mb: 0.5,
-                    minHeight: 40,
-                    px: 1.5,
-                    color: isSelected ? "primary.main" : "text.secondary",
-                    "&.Mui-selected": {
-                      bgcolor: "primary.50",
-                      fontWeight: 700,
-                      "&:hover": {
-                        bgcolor: "primary.100",
-                      },
-                    },
+            const isSelected =
+              pathname === item.href ||
+              (item.href !== "/dashboard" &&
+                pathname.startsWith(`${item.href}/`));
+
+            return (
+              <ListItemButton
+                key={item.href}
+                component={Link}
+                href={item.href}
+                onClick={onNavigate}
+                selected={isSelected}
+                sx={{
+                  borderRadius: 2,
+                  mb: 0.5,
+                  minHeight: 40,
+                  px: 1.5,
+                  color: isSelected
+                    ? "primary.main"
+                    : "text.secondary",
+                  "&.Mui-selected": {
+                    bgcolor: "primary.50",
+                    fontWeight: 700,
                     "&:hover": {
-                      bgcolor: "action.hover",
-                      color: "text.primary",
+                      bgcolor: "primary.100",
                     },
+                  },
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                    color: "text.primary",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 34,
+                    color: isSelected
+                      ? "primary.main"
+                      : "text.secondary",
                   }}
                 >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 34,
-                      color: isSelected ? "primary.main" : "text.secondary",
-                    }}
-                  >
-                    <Icon fontSize="small" />
-                  </ListItemIcon>
+                  <Icon fontSize="small" />
+                </ListItemIcon>
 
-                  <ListItemText
-                    primary={
-                      <Typography
-                        component="span"
-                        sx={{
-                          fontSize: "0.875rem",
-                          fontWeight: isSelected ? 700 : 500,
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              );
-            })}
+                <ListItemText
+                  primary={
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontSize: "0.875rem",
+                        fontWeight: isSelected ? 700 : 500,
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  }
+                />
+              </ListItemButton>
+            );
+          })}
         </List>
       </Box>
     </Box>

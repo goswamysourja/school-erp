@@ -5,21 +5,19 @@ import {
 
 import { requestOtp } from "@/modules/auth/services/request-otp.service";
 
-export async function POST(
-  request: NextRequest,
-) {
-  try {
-    const body =
-      await request.json();
+import { requestOtpSchema } from "@/modules/auth/validators/request-otp.validator";
 
-    await requestOtp(
-      body.phone,
-    );
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    const validatedData = requestOtpSchema.parse(body);
+
+    await requestOtp(validatedData.phone);
 
     return NextResponse.json({
       success: true,
-      message:
-        "OTP sent successfully",
+      message: "OTP sent successfully",
     });
   } catch (error) {
     return NextResponse.json(
@@ -30,9 +28,7 @@ export async function POST(
             ? error.message
             : "Something went wrong",
       },
-      {
-        status: 400,
-      },
+      { status: 400 },
     );
   }
 }

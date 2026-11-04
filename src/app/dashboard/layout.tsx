@@ -1,11 +1,11 @@
-import { DashboardShell }
-  from "@/components/layout/dashboard-shell";
+import { Role } from "@prisma/client";
 
-import { getAuthUser }
-  from "@/modules/auth/services/get-auth-user.service";
+import { prisma } from "@/lib/prisma/client";
 
-import { requireAuth }
-  from "@/modules/auth/guards/require-auth.guard";
+import { DashboardShell } from "@/components/layout/dashboard-shell";
+
+import { getAuthUser } from "@/modules/auth/services/get-auth-user.service";
+import { requireAuth } from "@/modules/auth/guards/require-auth.guard";
 
 export default async function DashboardLayout({
   children,
@@ -14,11 +14,39 @@ export default async function DashboardLayout({
 }) {
   await requireAuth();
 
-  const user =
-    await getAuthUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return null;
+  }
+
+  let hasLibraryAccess = false;
+
+  // ADMIN automatically has access to their tenant's library.
+  if (user.role === Role.ADMIN && user.tenantId) {
+    hasLibraryAccess = true;
+  }
+
+  // STAFF and legacy TEACHER accounts require
+  // an active LibraryStaffAssignment.
+  else if (
+    (user.role === Role.STAFF || user.role === Role.TEACHER) &&
+    user.tenantId
+  ) {
+    const assignment =
+      await prisma.libraryStaffAssignment.findUnique({
+        where: {
+          tenantId_userId: {
+            tenantId: user.tenantId,
+            userId: user.id,
+          },
+        },
+        select: {
+          isActive: true,
+        },
+      });
+
+    hasLibraryAccess = assignment?.isActive === true;
   }
 
   return (
@@ -26,7 +54,9 @@ export default async function DashboardLayout({
       user={{
         name: user.name,
         role: user.role,
+        designation: user.designation,
       }}
+      hasLibraryAccess={hasLibraryAccess}
     >
       {children}
     </DashboardShell>

@@ -1,9 +1,4 @@
-import {
-  Box,
-  Button,
-  Stack,
-} from "@mui/material";
-
+import { Box } from "@mui/material";
 import { Role } from "@prisma/client";
 
 import { requireAuth } from "@/modules/auth/guards/require-auth.guard";
@@ -23,8 +18,7 @@ export default async function DashboardPage() {
   const user = await requireAuth();
 
   if (user.role === Role.SUPER_ADMIN) {
-    const stats =
-      await getSuperAdminDashboardStats();
+    const stats = await getSuperAdminDashboardStats();
 
     return (
       <>
@@ -61,51 +55,18 @@ export default async function DashboardPage() {
             value={stats.suspendedTenants}
           />
         </SectionContainer>
-
-        <Box sx={{ mt: 5 }}>
-          <PageHeader
-            title="Quick Actions"
-            subtitle="Manage your school platform"
-          />
-
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            spacing={2}
-            sx={{ mt: 2 }}
-          >
-            <Button
-              variant="contained"
-              href="/dashboard/tenants"
-            >
-              Manage Tenants
-            </Button>
-
-            <Button
-              variant="outlined"
-              href="/dashboard/tenants/create"
-            >
-              Create Tenant
-            </Button>
-          </Stack>
-        </Box>
       </>
     );
   }
 
   if (user.role === Role.ADMIN) {
     if (!user.tenantId) {
-      throw new Error(
-        "Tenant assignment missing.",
-      );
+      throw new Error("Tenant assignment missing.");
     }
 
-    const stats =
-      await getAdminDashboardStats(
-        user.tenantId,
-      );
+    const stats = await getAdminDashboardStats(
+      user.tenantId
+    );
 
     return (
       <>
@@ -147,59 +108,14 @@ export default async function DashboardPage() {
             value={stats.totalSubjects}
           />
         </SectionContainer>
-
-        <Box sx={{ mt: 5 }}>
-          <PageHeader
-            title="Quick Actions"
-            subtitle="Manage your school"
-          />
-
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            spacing={2}
-            sx={{ mt: 2 }}
-          >
-            <Button
-              variant="contained"
-              href="/dashboard/users/create"
-            >
-              Create User
-            </Button>
-
-            <Button
-              variant="outlined"
-              href="/dashboard/classes/create"
-            >
-              Create Class
-            </Button>
-
-            <Button
-              variant="outlined"
-              href="/dashboard/students/create"
-            >
-              Create Student
-            </Button>
-
-            <Button
-              variant="outlined"
-              href="/dashboard/subjects/create"
-            >
-              Create Subject
-            </Button>
-          </Stack>
-        </Box>
       </>
     );
   }
 
   if (user.role === Role.TEACHER) {
-    const stats =
-      await getTeacherDashboardStats(
-        user.id,
-      );
+    const stats = await getTeacherDashboardStats(
+      user.id
+    );
 
     return (
       <>
@@ -228,9 +144,7 @@ export default async function DashboardPage() {
 
           <StatCard
             title="Class Teacher Sections"
-            value={
-              stats.classTeacherSections
-            }
+            value={stats.classTeacherSections}
           />
 
           <StatCard

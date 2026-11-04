@@ -17,33 +17,24 @@ export async function POST(
   request: NextRequest,
 ) {
   try {
-    const currentUser =
-      await requireApiRole([
-        Role.ADMIN,
-      ]);
+    const currentUser = await requireApiRole([
+      Role.ADMIN,
+    ]);
 
     if (!currentUser.tenantId) {
-      throw new Error(
-        "Tenant assignment missing.",
-      );
+      throw new Error("Tenant assignment missing.");
     }
 
-    const body =
-      await request.json();
+    const body = await request.json();
 
-    const validatedData =
-      createUserSchema.parse(body);
+    const validatedData = createUserSchema.parse(body);
 
-    const user =
-      await createUser({
-        name:
-          validatedData.name,
-        phone:
-          validatedData.phone,
-        role: Role.TEACHER,
-        tenantId:
-          currentUser.tenantId,
-      });
+    const user = await createUser({
+      name: validatedData.name,
+      phone: validatedData.phone,
+      designation: validatedData.designation,
+      tenantId: currentUser.tenantId,
+    });
 
     return NextResponse.json({
       success: true,
@@ -67,22 +58,17 @@ export async function POST(
 
 export async function GET() {
   try {
-    const currentUser =
-      await requireApiRole([
-        Role.ADMIN,
-      ]);
+    const currentUser = await requireApiRole([
+      Role.ADMIN,
+    ]);
 
     if (!currentUser.tenantId) {
-      throw new Error(
-        "Tenant assignment missing.",
-      );
+      throw new Error("Tenant assignment missing.");
     }
 
-    const users =
-      await getTenantUsers({
-        tenantId:
-          currentUser.tenantId,
-      });
+    const users = await getTenantUsers({
+      tenantId: currentUser.tenantId,
+    });
 
     return NextResponse.json({
       success: true,

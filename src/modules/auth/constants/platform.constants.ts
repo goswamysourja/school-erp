@@ -6,5 +6,6 @@ export const PLATFORM_ROLES = [
 
 export const TENANT_ROLES = [
   Role.ADMIN,
-  Role.TEACHER,
+  Role.STAFF,
+  Role.TEACHER, // Temporary: legacy accounts
 ] as const;
