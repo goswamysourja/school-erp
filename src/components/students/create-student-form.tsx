@@ -4,10 +4,12 @@ import { useState } from "react";
 
 import {
   Alert,
+  Box,
   Button,
   MenuItem,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
 import { FormCard } from "@/components/ui/form-card";
@@ -17,7 +19,6 @@ import { createStudent } from "@/modules/students/api/create-student";
 interface SectionItem {
   id: string;
   name: string;
-
   class: {
     id: string;
     name: string;
@@ -31,51 +32,20 @@ interface Props {
 export function CreateStudentForm({
   sections,
 }: Props) {
-  const [
-    admissionNumber,
-    setAdmissionNumber,
-  ] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState("MALE");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [sectionId, setSectionId] = useState("");
 
-  const [
-    firstName,
-    setFirstName,
-  ] = useState("");
-
-  const [
-    lastName,
-    setLastName,
-  ] = useState("");
-
-  const [gender, setGender] =
-    useState("MALE");
-
-  const [
-    dateOfBirth,
-    setDateOfBirth,
-  ] = useState("");
-
-  const [
-    guardianName,
-    setGuardianName,
-  ] = useState("");
-
-  const [phone, setPhone] =
-    useState("");
-
-  const [address, setAddress] =
-    useState("");
-
-  const [sectionId, setSectionId] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(
-    e: React.FormEvent,
+    e: React.FormEvent<HTMLFormElement>,
   ) {
     e.preventDefault();
 
@@ -84,9 +54,8 @@ export function CreateStudentForm({
       setError("");
 
       await createStudent({
-        admissionNumber,
-        firstName,
-        lastName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         gender,
         dateOfBirth,
         guardianName,
@@ -95,13 +64,12 @@ export function CreateStudentForm({
         sectionId,
       });
 
-      window.location.href =
-        "/dashboard/students";
+      window.location.href = "/dashboard/students";
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to create student",
+          : "Failed to create student.",
       );
     } finally {
       setLoading(false);
@@ -110,7 +78,8 @@ export function CreateStudentForm({
 
   return (
     <FormCard>
-      <form
+      <Box
+        component="form"
         onSubmit={handleSubmit}
       >
         <Stack spacing={3}>
@@ -120,79 +89,68 @@ export function CreateStudentForm({
             </Alert>
           )}
 
-          <TextField
-            label="Admission Number"
-            value={
-              admissionNumber
-            }
-            onChange={(e) =>
-              setAdmissionNumber(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          />
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: "action.hover",
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600 }}
+            >
+              Admission number generated automatically
+            </Typography>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+            >
+              A unique admission number will be assigned after
+              selecting the student's section.
+            </Typography>
+          </Box>
 
           <TextField
             label="First Name"
             value={firstName}
-            onChange={(e) =>
-              setFirstName(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setFirstName(e.target.value)}
             fullWidth
             required
+            disabled={loading}
           />
 
           <TextField
             label="Last Name"
             value={lastName}
-            onChange={(e) =>
-              setLastName(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setLastName(e.target.value)}
             fullWidth
             required
+            disabled={loading}
           />
 
           <TextField
             select
             label="Gender"
             value={gender}
-            onChange={(e) =>
-              setGender(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setGender(e.target.value)}
             fullWidth
             required
+            disabled={loading}
           >
-            <MenuItem value="MALE">
-              Male
-            </MenuItem>
-
-            <MenuItem value="FEMALE">
-              Female
-            </MenuItem>
-
-            <MenuItem value="OTHER">
-              Other
-            </MenuItem>
+            <MenuItem value="MALE">Male</MenuItem>
+            <MenuItem value="FEMALE">Female</MenuItem>
+            <MenuItem value="OTHER">Other</MenuItem>
           </TextField>
 
           <TextField
             type="date"
             label="Date Of Birth"
             value={dateOfBirth}
-            onChange={(e) =>
-              setDateOfBirth(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setDateOfBirth(e.target.value)}
             fullWidth
+            disabled={loading}
             slotProps={{
               inputLabel: {
                 shrink: true,
@@ -202,81 +160,67 @@ export function CreateStudentForm({
 
           <TextField
             label="Guardian Name"
-            value={
-              guardianName
-            }
-            onChange={(e) =>
-              setGuardianName(
-                e.target.value,
-              )
-            }
+            value={guardianName}
+            onChange={(e) => setGuardianName(e.target.value)}
             fullWidth
+            disabled={loading}
           />
 
           <TextField
             label="Phone"
             value={phone}
-            onChange={(e) =>
-              setPhone(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setPhone(e.target.value)}
             fullWidth
+            disabled={loading}
           />
 
           <TextField
             label="Address"
             value={address}
-            onChange={(e) =>
-              setAddress(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setAddress(e.target.value)}
             fullWidth
             multiline
             rows={3}
+            disabled={loading}
           />
 
           <TextField
             select
             label="Section"
             value={sectionId}
-            onChange={(e) =>
-              setSectionId(
-                e.target.value,
-              )
-            }
+            onChange={(e) => setSectionId(e.target.value)}
             fullWidth
             required
+            disabled={loading}
           >
-            <MenuItem
-              value=""
-              disabled
-            >
+            <MenuItem value="" disabled>
               Select Section
             </MenuItem>
 
-            {sections.map(
-              (section) => (
-                <MenuItem
-                  key={section.id}
-                  value={section.id}
-                >
-                  {section.class.name}
-                  {" - "}
-                  {section.name}
-                </MenuItem>
-              ),
-            )}
+            {sections.map((section) => (
+              <MenuItem
+                key={section.id}
+                value={section.id}
+              >
+                {section.class.name} - {section.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <Stack
-            direction="row"
+            direction={{
+              xs: "column-reverse",
+              sm: "row",
+            }}
             spacing={2}
+            sx={{
+              justifyContent: "flex-end",
+            }}
           >
             <Button
               variant="outlined"
               href="/dashboard/students"
+              disabled={loading}
             >
               Cancel
             </Button>
@@ -284,15 +228,18 @@ export function CreateStudentForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={
+                loading ||
+                !firstName.trim() ||
+                !lastName.trim() ||
+                !sectionId
+              }
             >
-              {loading
-                ? "Creating..."
-                : "Create Student"}
+              {loading ? "Creating..." : "Create Student"}
             </Button>
           </Stack>
         </Stack>
-      </form>
+      </Box>
     </FormCard>
   );
 }

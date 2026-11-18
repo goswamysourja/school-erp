@@ -1,5 +1,5 @@
 
-import { LibraryCopyStatus } from "@prisma/client";
+import { LibraryCopyStatus, Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { authorizeLibraryApiAccess } from "@/modules/library/guards/authorize-library-api.guard";
@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+
 export async function POST(request: NextRequest) {
   try {
     const access = await authorizeLibraryApiAccess();
@@ -96,18 +97,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      typeof payload.accessionNumber !== "string" ||
-      !payload.accessionNumber.trim()
-    ) {
-      return NextResponse.json(
-        { error: "A valid accession number is required." },
-        { status: 400 },
-      );
-    }
-
     const stringFields = [
-      "barcode",
       "rackId",
       "purchaseDate",
       "notes",
@@ -141,11 +131,6 @@ export async function POST(request: NextRequest) {
     const copy = await createLibraryBookCopy({
       tenantId: access.tenantId,
       bookId: payload.bookId.trim(),
-      accessionNumber: payload.accessionNumber,
-      barcode:
-        typeof payload.barcode === "string"
-          ? payload.barcode
-          : undefined,
       rackId:
         typeof payload.rackId === "string"
           ? payload.rackId
@@ -166,23 +151,20 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(copy, { status: 201 });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "";
-
-    const conflictErrors = [
-      "This accession number already exists in this institution.",
-      "This barcode already exists in this institution.",
-    ];
-
-    if (conflictErrors.includes(message)) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
       return NextResponse.json(
-        { error: message },
+        { error: "Generated copy identifier already exists. Please retry." },
         { status: 409 },
       );
     }
 
+    const message =
+      error instanceof Error ? error.message : "";
+
     const validationErrors = [
-      "Accession number is required.",
       "Purchase price must be a non-negative number.",
       "Purchase date is invalid.",
       "Tenant not found.",

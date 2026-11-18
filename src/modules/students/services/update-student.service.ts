@@ -2,151 +2,93 @@ import { prisma } from "@/lib/prisma/client";
 
 interface UpdateStudentInput {
   id: string;
-
-  admissionNumber: string;
-
   firstName: string;
   lastName: string;
-
   gender: string;
-
   dateOfBirth?: string;
-
   guardianName?: string;
-
   phone?: string;
-
   address?: string;
-
   tenantId: string;
-
   sectionId: string;
 }
 
 export async function updateStudent(
-  input: UpdateStudentInput
+  input: UpdateStudentInput,
 ) {
-  const tenant =
-    await prisma.tenant.findUnique({
-      where: {
-        id: input.tenantId,
-      },
-    });
+  const tenant = await prisma.tenant.findUnique({
+    where: {
+      id: input.tenantId,
+    },
+  });
 
   if (!tenant) {
-    throw new Error(
-      "Tenant not found"
-    );
+    throw new Error("Tenant not found.");
   }
 
   if (tenant.status !== "ACTIVE") {
-    throw new Error(
-      "Tenant is inactive"
-    );
+    throw new Error("Tenant is inactive.");
   }
 
-  const student =
-    await prisma.student.findUnique({
-      where: {
-        id: input.id,
-      },
-    });
+  const student = await prisma.student.findUnique({
+    where: {
+      id: input.id,
+    },
+  });
 
   if (!student) {
+    throw new Error("Student not found.");
+  }
+
+  if (student.tenantId !== input.tenantId) {
     throw new Error(
-      "Student not found"
+      "Student belongs to another tenant.",
     );
   }
 
-  if (
-    student.tenantId !==
-    input.tenantId
-  ) {
-    throw new Error(
-      "Student belongs to another tenant"
-    );
-  }
-
-  const section =
-    await prisma.section.findUnique({
-      where: {
-        id: input.sectionId,
-      },
-    });
+  const section = await prisma.section.findUnique({
+    where: {
+      id: input.sectionId,
+    },
+  });
 
   if (!section) {
-    throw new Error(
-      "Section not found"
-    );
+    throw new Error("Section not found.");
   }
 
   if (!section.isActive) {
+    throw new Error("Section is inactive.");
+  }
+
+  if (section.tenantId !== input.tenantId) {
     throw new Error(
-      "Section is inactive"
+      "Section belongs to another tenant.",
     );
   }
 
-  if (
-    section.tenantId !==
-    input.tenantId
-  ) {
-    throw new Error(
-      "Section belongs to another tenant"
-    );
-  }
-
-  const classItem =
-    await prisma.class.findUnique({
-      where: {
-        id: section.classId,
-      },
-    });
+  const classItem = await prisma.class.findUnique({
+    where: {
+      id: section.classId,
+    },
+  });
 
   if (!classItem) {
-    throw new Error(
-      "Class not found"
-    );
+    throw new Error("Class not found.");
   }
 
   if (!classItem.isActive) {
-    throw new Error(
-      "Class is inactive"
-    );
+    throw new Error("Class is inactive.");
   }
 
-  if (
-    classItem.tenantId !==
-    input.tenantId
-  ) {
+  if (classItem.tenantId !== input.tenantId) {
     throw new Error(
-      "Class belongs to another tenant"
+      "Class belongs to another tenant.",
     );
   }
 
   if (!classItem.academicYearId) {
     throw new Error(
-      "Class is not linked to an academic year"
-    );
-  }
-
-  const existingStudent =
-    await prisma.student.findFirst({
-      where: {
-        tenantId:
-          input.tenantId,
-
-        admissionNumber:
-          input.admissionNumber,
-
-        NOT: {
-          id: input.id,
-        },
-      },
-    });
-
-  if (existingStudent) {
-    throw new Error(
-      "Admission number already exists"
+      "Class is not linked to an academic year.",
     );
   }
 
@@ -156,36 +98,18 @@ export async function updateStudent(
     },
 
     data: {
-      admissionNumber:
-        input.admissionNumber,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      gender: input.gender,
 
-      firstName:
-        input.firstName,
+      dateOfBirth: input.dateOfBirth
+        ? new Date(input.dateOfBirth)
+        : null,
 
-      lastName:
-        input.lastName,
-
-      gender:
-        input.gender,
-
-      dateOfBirth:
-        input.dateOfBirth
-          ? new Date(
-              input.dateOfBirth
-            )
-          : null,
-
-      guardianName:
-        input.guardianName,
-
-      phone:
-        input.phone,
-
-      address:
-        input.address,
-
-      sectionId:
-        input.sectionId,
+      guardianName: input.guardianName,
+      phone: input.phone,
+      address: input.address,
+      sectionId: input.sectionId,
     },
   });
 }

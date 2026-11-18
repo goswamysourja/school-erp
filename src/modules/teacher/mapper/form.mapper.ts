@@ -7,41 +7,28 @@ export function mapTeacherToFormValues(
   teacher: TeacherResponse,
 ): TeacherFormValues {
   return {
-    employeeId:
-      teacher.employeeId,
+    firstName: teacher.firstName,
 
-    firstName:
-      teacher.firstName,
+    lastName: teacher.lastName,
 
-    lastName:
-      teacher.lastName,
+    gender: teacher.gender as
+      | "MALE"
+      | "FEMALE"
+      | "OTHER",
 
-    gender:
-      teacher.gender as
-        "MALE" | "FEMALE" | "OTHER",
+    dateOfBirth: teacher.dateOfBirth
+      ? teacher.dateOfBirth.toISOString().split("T")[0]
+      : "",
 
-    dateOfBirth:
-      teacher.dateOfBirth
-        ? teacher.dateOfBirth
-            .toISOString()
-            .split("T")[0]
-        : "",
+    phone: teacher.userPhone ?? "",
 
-    phone:
-      teacher.userPhone ?? "",
-
-    address:
-      teacher.address ?? "",
+    address: teacher.address ?? "",
 
     highestQualification:
-      teacher.highestQualification ??
-      "",
+      teacher.highestQualification ?? "",
 
-    joiningDate:
-      teacher.joiningDate
-        ? teacher.joiningDate
-            .toISOString()
-            .split("T")[0]
-        : "",
+    joiningDate: teacher.joiningDate
+      ? teacher.joiningDate.toISOString().split("T")[0]
+      : "",
   };
 }

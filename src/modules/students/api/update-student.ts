@@ -1,5 +1,4 @@
 export interface UpdateStudentInput {
-  admissionNumber: string;
   firstName: string;
   lastName: string;
   gender: string;
@@ -19,20 +18,17 @@ export async function updateStudent(
     {
       method: "PATCH",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(input),
     },
   );
 
-  const data =
-    await response.json();
+  const data = await response.json();
 
   if (!response.ok || !data.success) {
     throw new Error(
-      data.message ??
-        "Failed to update student.",
+      data.message ?? "Failed to update student.",
     );
   }
 

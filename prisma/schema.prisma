@@ -42,6 +42,7 @@ model Tenant {
   classTeacherAssignments ClassTeacherAssignment[]
   users                   User[]                   @relation("TenantUsers")
   adminUser               User?                    @relation("TenantAdministrator", fields: [adminUserId], references: [id], onDelete: SetNull)
+  sequences               TenantSequence[]
 
   academicYears   AcademicYear[]
   academicPeriods AcademicPeriod[]
@@ -57,6 +58,17 @@ model Tenant {
   libraryPayments         LibraryPayment[]
 
   @@map("tenants")
+}
+
+model TenantSequence {
+  tenantId    String
+  sequenceKey String
+  value       Int    @default(0)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@id([tenantId, sequenceKey])
+  @@map("tenant_sequences")
 }
 
 model User {

@@ -2,80 +2,59 @@ import { prisma } from "@/lib/prisma/client";
 
 import { requireActiveTenant } from "@/modules/tenants/guards";
 
+import { generateTenantId } from "@/modules/common/services/generate-id.service";
+
 import {
   requireEligibleTeacherUser,
-  requireUniqueEmployeeId,
 } from "../guards";
 
 import { mapTeacherResponse } from "../mapper";
 
-import type {
-  CreateTeacherInput,
-} from "../validators";
+import type { CreateTeacherInput } from "../validators";
 
-interface CreateTeacherServiceInput
-  extends CreateTeacherInput {
+interface CreateTeacherServiceInput extends CreateTeacherInput {
   tenantId: string;
 }
 
 export async function createTeacher(
   input: CreateTeacherServiceInput,
 ) {
-  await requireActiveTenant(
+  await requireActiveTenant(input.tenantId);
+
+  const user = await requireEligibleTeacherUser(
+    input.userId,
     input.tenantId,
   );
 
-  const user =
-    await requireEligibleTeacherUser(
-      input.userId,
-      input.tenantId,
-    );
+  const teacher = await prisma.$transaction(async (tx) => {
+    const employeeId = await generateTenantId(tx, {
+      tenantId: input.tenantId,
+      sequenceKey: "EMPLOYEE",
+      prefix: "EMP",
+      padding: 6,
+    });
 
-  await requireUniqueEmployeeId(
-    input.employeeId,
-    input.tenantId,
-  );
-
-  const teacher =
-    await prisma.teacher.create({
+    return tx.teacher.create({
       data: {
-        employeeId:
-          input.employeeId,
+        employeeId,
 
-        firstName:
-          input.firstName,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        gender: input.gender,
 
-        lastName:
-          input.lastName,
+        dateOfBirth: input.dateOfBirth
+          ? new Date(input.dateOfBirth)
+          : null,
 
-        gender:
-          input.gender,
+        address: input.address,
+        highestQualification: input.highestQualification,
 
-        dateOfBirth:
-          input.dateOfBirth
-            ? new Date(
-                input.dateOfBirth,
-              )
-            : null,
+        joiningDate: input.joiningDate
+          ? new Date(input.joiningDate)
+          : null,
 
-        address:
-          input.address,
-
-        highestQualification:
-          input.highestQualification,
-
-        joiningDate:
-          input.joiningDate
-            ? new Date(
-                input.joiningDate,
-              )
-            : null,
-
-        tenantId:
-          input.tenantId,
-
-        userId:
-          user.id,
+        tenantId: input.tenantId,
+        userId: user.id,
       },
 
       include: {
@@ -83,8 +62,7 @@ export async function createTeacher(
         user: true,
       },
     });
+  });
 
-  return mapTeacherResponse(
-    teacher,
-  );
+  return mapTeacherResponse(teacher);
 }

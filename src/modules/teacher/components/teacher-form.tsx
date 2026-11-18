@@ -101,7 +101,7 @@ export function TeacherForm({
     reValidateMode: "onChange",
 
     defaultValues: {
-      employeeId: "",
+      
 
       firstName:
         isCreateMode
@@ -134,7 +134,7 @@ export function TeacherForm({
 
   useEffect(() => {
     reset({
-      employeeId: "",
+      
 
       firstName:
         isCreateMode
@@ -239,28 +239,7 @@ export function TeacherForm({
           container
           spacing={3}
         >
-          {/* Employee ID */}
-          <Grid size={{ xs: 12 }}>
-            <Controller
-              control={control}
-              name="employeeId"
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Employee ID"
-                  placeholder="e.g. EMP001"
-                  disabled={loading}
-                  error={
-                    !!errors.employeeId
-                  }
-                  helperText={
-                    errors.employeeId?.message
-                  }
-                />
-              )}
-            />
-          </Grid>
+          
 
           {/* First Name */}
           <Grid

@@ -59,9 +59,9 @@ export async function PATCH(
 
     const payload = body as Record<string, unknown>;
 
+    // Accession number and barcode are generated identifiers.
+    // They cannot be modified after copy creation.
     const allowedFields = [
-      "accessionNumber",
-      "barcode",
       "rackId",
       "purchaseDate",
       "purchasePrice",
@@ -80,18 +80,11 @@ export async function PATCH(
       );
     }
 
-    if (
-      payload.accessionNumber !== undefined &&
-      (typeof payload.accessionNumber !== "string" ||
-        !payload.accessionNumber.trim())
-    ) {
-      return NextResponse.json(
-        { error: "Accession number must be a non-empty string." },
-        { status: 400 },
-      );
-    }
-
-    for (const field of ["barcode", "rackId", "purchaseDate", "notes"] as const) {
+    for (const field of [
+      "rackId",
+      "purchaseDate",
+      "notes",
+    ] as const) {
       if (
         payload[field] !== undefined &&
         payload[field] !== null &&
@@ -142,24 +135,23 @@ export async function PATCH(
     const copy = await updateLibraryBookCopy({
       id,
       tenantId: access.tenantId,
-      ...(typeof payload.accessionNumber === "string"
-        ? { accessionNumber: payload.accessionNumber }
-        : {}),
-      ...(payload.barcode !== undefined
-        ? { barcode: payload.barcode as string | null }
-        : {}),
+
       ...(payload.rackId !== undefined
         ? { rackId: payload.rackId as string | null }
         : {}),
+
       ...(payload.purchaseDate !== undefined
         ? { purchaseDate: payload.purchaseDate as string | null }
         : {}),
+
       ...(payload.purchasePrice !== undefined
         ? { purchasePrice: payload.purchasePrice as number | null }
         : {}),
+
       ...(payload.notes !== undefined
         ? { notes: payload.notes as string | null }
         : {}),
+
       ...(typeof payload.status === "string"
         ? { status: payload.status as LibraryCopyStatus }
         : {}),
@@ -177,8 +169,6 @@ export async function PATCH(
     }
 
     const conflictErrors = [
-      "This accession number already exists in this institution.",
-      "This barcode already exists in this institution.",
       "The rack assignment cannot be changed while the book copy is issued.",
       "Use the circulation operations to issue a book or mark it lost.",
       "Lost or removed copies cannot have their status changed here.",
@@ -193,7 +183,6 @@ export async function PATCH(
     }
 
     const validationErrors = [
-      "Accession number cannot be empty.",
       "Purchase price must be a non-negative number.",
       "Purchase date is invalid.",
       "An active rack from this institution is required.",

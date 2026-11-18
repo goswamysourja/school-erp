@@ -6,8 +6,6 @@ import { prisma } from "@/lib/prisma/client";
 interface UpdateLibraryBookCopyInput {
   id: string;
   tenantId: string;
-  accessionNumber?: string;
-  barcode?: string | null;
   rackId?: string | null;
   purchaseDate?: string | null;
   purchasePrice?: number | null;
@@ -46,68 +44,13 @@ export async function updateLibraryBookCopy(
   const hasActiveLoan = copy.loans.length > 0;
   const data: Prisma.LibraryBookCopyUncheckedUpdateInput = {};
 
-  if (input.accessionNumber !== undefined) {
-    const accessionNumber = input.accessionNumber.trim();
-
-    if (!accessionNumber) {
-      throw new Error("Accession number cannot be empty.");
-    }
-
-    if (accessionNumber !== copy.accessionNumber) {
-      const existingCopy = await prisma.libraryBookCopy.findFirst({
-        where: {
-          tenantId: input.tenantId,
-          accessionNumber,
-          NOT: {
-            id: copy.id,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (existingCopy) {
-        throw new Error(
-          "This accession number already exists in this institution.",
-        );
-      }
-    }
-
-    data.accessionNumber = accessionNumber;
-  }
-
-  if (input.barcode !== undefined) {
-    const barcode = input.barcode?.trim() || null;
-
-    if (barcode && barcode !== copy.barcode) {
-      const existingCopy = await prisma.libraryBookCopy.findFirst({
-        where: {
-          tenantId: input.tenantId,
-          barcode,
-          NOT: {
-            id: copy.id,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (existingCopy) {
-        throw new Error(
-          "This barcode already exists in this institution.",
-        );
-      }
-    }
-
-    data.barcode = barcode;
-  }
-
   if (input.rackId !== undefined) {
     const rackId = input.rackId?.trim() || null;
 
-    if (rackId !== copy.rackId && (hasActiveLoan || copy.status === "ISSUED")) {
+    if (
+      rackId !== copy.rackId &&
+      (hasActiveLoan || copy.status === "ISSUED")
+    ) {
       throw new Error(
         "The rack assignment cannot be changed while the book copy is issued.",
       );
@@ -136,7 +79,10 @@ export async function updateLibraryBookCopy(
   }
 
   if (input.purchaseDate !== undefined) {
-    if (input.purchaseDate === null || input.purchaseDate.trim() === "") {
+    if (
+      input.purchaseDate === null ||
+      input.purchaseDate.trim() === ""
+    ) {
       data.purchaseDate = null;
     } else {
       const purchaseDate = new Date(input.purchaseDate);

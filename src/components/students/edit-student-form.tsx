@@ -8,6 +8,7 @@ import {
   MenuItem,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 
 import { FormCard } from "@/components/ui/form-card";
@@ -46,55 +47,24 @@ export function EditStudentForm({
   initialSectionId,
   sections,
 }: Props) {
-  const [
-    admissionNumber,
-    setAdmissionNumber,
-  ] = useState(initialAdmissionNumber);
-
-  const [
-    firstName,
-    setFirstName,
-  ] = useState(initialFirstName);
-
-  const [
-    lastName,
-    setLastName,
-  ] = useState(initialLastName);
-
-  const [gender, setGender] =
-    useState(initialGender);
-
-  const [
-    dateOfBirth,
-    setDateOfBirth,
-  ] = useState(initialDateOfBirth ?? "");
-
-  const [
-    guardianName,
-    setGuardianName,
-  ] = useState(
+  const [firstName, setFirstName] = useState(initialFirstName);
+  const [lastName, setLastName] = useState(initialLastName);
+  const [gender, setGender] = useState(initialGender);
+  const [dateOfBirth, setDateOfBirth] = useState(
+    initialDateOfBirth ?? "",
+  );
+  const [guardianName, setGuardianName] = useState(
     initialGuardianName ?? "",
   );
+  const [phone, setPhone] = useState(initialPhone ?? "");
+  const [address, setAddress] = useState(initialAddress ?? "");
+  const [sectionId, setSectionId] = useState(initialSectionId);
 
-  const [phone, setPhone] =
-    useState(initialPhone ?? "");
-
-  const [address, setAddress] =
-    useState(initialAddress ?? "");
-
-  const [
-    sectionId,
-    setSectionId,
-  ] = useState(initialSectionId);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(
-    e: React.FormEvent,
+    e: React.FormEvent<HTMLFormElement>,
   ) {
     e.preventDefault();
 
@@ -103,9 +73,8 @@ export function EditStudentForm({
       setError("");
 
       await updateStudent(id, {
-        admissionNumber,
-        firstName,
-        lastName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         gender,
         dateOfBirth,
         guardianName,
@@ -114,13 +83,12 @@ export function EditStudentForm({
         sectionId,
       });
 
-      window.location.href =
-        "/dashboard/students";
+      window.location.href = "/dashboard/students";
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update student",
+          : "Failed to update student.",
       );
     } finally {
       setLoading(false);
@@ -129,181 +97,150 @@ export function EditStudentForm({
 
   return (
     <FormCard>
-      <form
+      <Stack
+        component="form"
         onSubmit={handleSubmit}
+        spacing={3}
       >
-        <Stack spacing={3}>
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error">
+            {error}
+          </Alert>
+        )}
 
+        {/* Generated Admission Number */}
+        
           <TextField
             label="Admission Number"
-            value={admissionNumber}
-            onChange={(e) =>
-              setAdmissionNumber(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          />
-
-          <TextField
-            label="First Name"
-            value={firstName}
-            onChange={(e) =>
-              setFirstName(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          />
-
-          <TextField
-            label="Last Name"
-            value={lastName}
-            onChange={(e) =>
-              setLastName(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          />
-
-          <TextField
-            select
-            label="Gender"
-            value={gender}
-            onChange={(e) =>
-              setGender(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          >
-            <MenuItem value="MALE">
-              Male
-            </MenuItem>
-
-            <MenuItem value="FEMALE">
-              Female
-            </MenuItem>
-
-            <MenuItem value="OTHER">
-              Other
-            </MenuItem>
-          </TextField>
-
-          <TextField
-            type="date"
-            label="Date Of Birth"
-            value={dateOfBirth}
-            onChange={(e) =>
-              setDateOfBirth(
-                e.target.value,
-              )
-            }
+            value={initialAdmissionNumber}
             fullWidth
             slotProps={{
-              inputLabel: {
-                shrink: true,
+              input: {
+                readOnly: true,
               },
             }}
+            helperText="System-generated identifier. Cannot be changed."
           />
+        
 
-          <TextField
-            label="Guardian Name"
-            value={guardianName}
-            onChange={(e) =>
-              setGuardianName(
-                e.target.value,
-              )
-            }
-            fullWidth
-          />
+        <TextField
+          label="First Name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          fullWidth
+          required
+          disabled={loading}
+        />
 
-          <TextField
-            label="Phone"
-            value={phone}
-            onChange={(e) =>
-              setPhone(e.target.value)
-            }
-            fullWidth
-          />
+        <TextField
+          label="Last Name"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          fullWidth
+          required
+          disabled={loading}
+        />
 
-          <TextField
-            label="Address"
-            value={address}
-            onChange={(e) =>
-              setAddress(
-                e.target.value,
-              )
-            }
-            fullWidth
-            multiline
-            rows={3}
-          />
+        <TextField
+          select
+          label="Gender"
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
+          fullWidth
+          required
+          disabled={loading}
+        >
+          <MenuItem value="MALE">Male</MenuItem>
+          <MenuItem value="FEMALE">Female</MenuItem>
+          <MenuItem value="OTHER">Other</MenuItem>
+        </TextField>
 
-          <TextField
-            select
-            label="Section"
-            value={sectionId}
-            onChange={(e) =>
-              setSectionId(
-                e.target.value,
-              )
-            }
-            fullWidth
-            required
-          >
+        <TextField
+          type="date"
+          label="Date Of Birth"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          fullWidth
+          disabled={loading}
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
+          }}
+        />
+
+        <TextField
+          label="Guardian Name"
+          value={guardianName}
+          onChange={(e) => setGuardianName(e.target.value)}
+          fullWidth
+          disabled={loading}
+        />
+
+        <TextField
+          label="Phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          fullWidth
+          disabled={loading}
+        />
+
+        <TextField
+          label="Address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          fullWidth
+          multiline
+          rows={3}
+          disabled={loading}
+        />
+
+        <TextField
+          select
+          label="Section"
+          value={sectionId}
+          onChange={(e) => setSectionId(e.target.value)}
+          fullWidth
+          required
+          disabled={loading}
+        >
+          {sections.map((section) => (
             <MenuItem
-              value=""
-              disabled
+              key={section.id}
+              value={section.id}
             >
-              Select Section
+              {section.name}
             </MenuItem>
+          ))}
+        </TextField>
 
-            {sections.map(
-              (section) => (
-                <MenuItem
-                  key={section.id}
-                  value={section.id}
-                >
-                  {section.name}
-                </MenuItem>
-              ),
-            )}
-          </TextField>
-
-          <Stack
-            direction="row"
-            spacing={2}
+        <Stack
+          direction={{
+            xs: "column-reverse",
+            sm: "row",
+          }}
+          spacing={2}
+          sx={{
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            variant="outlined"
+            href="/dashboard/students"
+            disabled={loading}
           >
-            <Button
-              variant="outlined"
-              href="/dashboard/students"
-            >
-              Cancel
-            </Button>
+            Cancel
+          </Button>
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-            >
-              {loading
-                ? "Saving..."
-                : "Save Changes"}
-            </Button>
-          </Stack>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
         </Stack>
-      </form>
+      </Stack>
     </FormCard>
   );
 }

@@ -70,18 +70,19 @@ interface LibraryCopy {
 
 interface CopyForm {
   bookId: string;
-  accessionNumber: string;
-  barcode: string;
   rackId: string;
   purchaseDate: string;
   purchasePrice: string;
   notes: string;
 }
 
+interface CreatedCopyResponse {
+  accessionNumber: string;
+  barcode: string | null;
+}
+
 const emptyForm: CopyForm = {
   bookId: "",
-  accessionNumber: "",
-  barcode: "",
   rackId: "",
   purchaseDate: "",
   purchasePrice: "",
@@ -263,8 +264,6 @@ export default function LibraryCopiesPage() {
         },
         body: JSON.stringify({
           bookId: form.bookId,
-          accessionNumber: form.accessionNumber,
-          barcode: form.barcode || undefined,
           rackId: form.rackId || undefined,
           purchaseDate: form.purchaseDate || undefined,
           purchasePrice,
@@ -278,8 +277,14 @@ export default function LibraryCopiesPage() {
         );
       }
 
+      const createdCopy =
+        (await response.json()) as CreatedCopyResponse;
+
       setForm(emptyForm);
-      setSuccess("Physical book copy registered successfully.");
+
+      setSuccess(
+        `Physical book copy registered successfully. Accession Number: ${createdCopy.accessionNumber}`,
+      );
 
       await loadCopies();
     } catch (error) {
@@ -406,6 +411,11 @@ export default function LibraryCopiesPage() {
           Register a Physical Copy
         </Typography>
 
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Accession number and barcode are generated automatically
+          when you register a physical copy.
+        </Alert>
+
         <Box
           component="form"
           onSubmit={handleCreateCopy}
@@ -435,28 +445,6 @@ export default function LibraryCopiesPage() {
               </MenuItem>
             ))}
           </TextField>
-
-          <TextField
-            label="Accession Number"
-            value={form.accessionNumber}
-            onChange={(event) =>
-              setForm({
-                ...form,
-                accessionNumber: event.target.value,
-              })
-            }
-            required
-            fullWidth
-          />
-
-          <TextField
-            label="Barcode (optional)"
-            value={form.barcode}
-            onChange={(event) =>
-              setForm({ ...form, barcode: event.target.value })
-            }
-            fullWidth
-          />
 
           <TextField
             select

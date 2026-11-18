@@ -4,7 +4,6 @@ import { requireActiveTenant } from "@/modules/tenants/guards";
 
 import {
   requireTeacherExists,
-  requireUniqueEmployeeId,
 } from "../guards";
 
 import { mapTeacherResponse } from "../mapper";
@@ -18,82 +17,46 @@ export async function updateTeacher(
   tenantId: string,
   input: UpdateTeacherInput,
 ) {
-  const teacher =
-    await requireTeacherExists(
-      teacherId,
-    );
+  const teacher = await requireTeacherExists(teacherId);
 
-  if (
-    teacher.tenantId !==
-    tenantId
-  ) {
+  if (teacher.tenantId !== tenantId) {
     throw new Error(
       "Teacher does not belong to this tenant.",
     );
   }
 
-  await requireActiveTenant(
-    teacher.tenantId,
-  );
+  await requireActiveTenant(teacher.tenantId);
 
-  if (
-    teacher.employeeId !==
-    input.employeeId
-  ) {
-    await requireUniqueEmployeeId(
-      input.employeeId,
-      teacher.tenantId,
-      teacher.id,
-    );
-  }
+  const updatedTeacher = await prisma.teacher.update({
+    where: {
+      id: teacher.id,
+    },
 
-  const updatedTeacher =
-    await prisma.teacher.update({
-      where: {
-        id: teacher.id,
-      },
+    data: {
+      firstName: input.firstName,
 
-      data: {
-        employeeId:
-          input.employeeId,
+      lastName: input.lastName,
 
-        firstName:
-          input.firstName,
+      gender: input.gender,
 
-        lastName:
-          input.lastName,
+      dateOfBirth: input.dateOfBirth
+        ? new Date(input.dateOfBirth)
+        : undefined,
 
-        gender:
-          input.gender,
+      address: input.address,
 
-        dateOfBirth:
-          input.dateOfBirth
-            ? new Date(
-                input.dateOfBirth,
-              )
-            : undefined,
+      highestQualification: input.highestQualification,
 
-        address:
-          input.address,
+      joiningDate: input.joiningDate
+        ? new Date(input.joiningDate)
+        : undefined,
+    },
 
-        highestQualification:
-          input.highestQualification,
+    include: {
+      tenant: true,
+      user: true,
+    },
+  });
 
-        joiningDate:
-          input.joiningDate
-            ? new Date(
-                input.joiningDate,
-              )
-            : undefined,
-      },
-
-      include: {
-        tenant: true,
-        user: true,
-      },
-    });
-
-  return mapTeacherResponse(
-    updatedTeacher,
-  );
+  return mapTeacherResponse(updatedTeacher);
 }

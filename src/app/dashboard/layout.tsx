@@ -1,10 +1,10 @@
+
 import { Role } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma/client";
 
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 
-import { getAuthUser } from "@/modules/auth/services/get-auth-user.service";
 import { requireAuth } from "@/modules/auth/guards/require-auth.guard";
 
 export default async function DashboardLayout({
@@ -12,24 +12,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAuth();
-
-  const user = await getAuthUser();
-
-  if (!user) {
-    return null;
-  }
+  const user = await requireAuth();
 
   let hasLibraryAccess = false;
 
-  // ADMIN automatically has access to their tenant's library.
   if (user.role === Role.ADMIN && user.tenantId) {
     hasLibraryAccess = true;
-  }
-
-  // STAFF and legacy TEACHER accounts require
-  // an active LibraryStaffAssignment.
-  else if (
+  } else if (
     (user.role === Role.STAFF || user.role === Role.TEACHER) &&
     user.tenantId
   ) {
